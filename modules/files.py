@@ -1,0 +1,213 @@
+"""Dateimanager – komplett neu, sauber, ohne Altlasten."""
+import os, shutil, stat, mimetypes, json, time, uuid, zipfile, subprocess
+from pathlib import Path
+
+BLOCKED  = {"/proc", "/sys", "/dev", "/run"}
+READONLY = {"/etc", "/bin", "/sbin", "/usr", "/lib", "/lib64", "/boot"}
+TRASH    = "/opt/nexus/data/trash"
+TRASHMETA= "/opt/nexus/data/trash/.meta.json"
+SHAREDB  = "/opt/nexus/data/shares.json"
+MAX_EDIT = 2 * 1024 * 1024
+
+def _r(p):  return os.path.realpath(p)
+def _bl(p): return any(_r(p)==b or _r(p).startswith(b+"/") for b in BLOCKED)
+def _ro(p): return any(_r(p)==r or _r(p).startswith(r+"/") for r in READONLY)
+def _ok(p):
+    if _bl(p): raise PermissionError("Gesperrt")
+    if _ro(p): raise PermissionError("Schreibgeschützt")
+
+def list_dir(path):
+    path = _r(path or "/")
+    if _bl(path): raise PermissionError("Gesperrt")
+    if not os.path.isdir(path): raise NotADirectoryError(path)
+    entries = []
+    with os.scandir(path) as it:
+        for e in it:
+            try:
+                st = e.stat(follow_symlinks=False)
+                full = os.path.join(path, e.name)
+                mime, _ = mimetypes.guess_type(full)
+                entries.append({
+                    "name": e.name, "path": full,
+                    "is_dir": e.is_dir(follow_symlinks=False),
+                    "size": st.st_size, "modified": st.st_mtime,
+                    "mode": stat.filemode(st.st_mode), "mime": mime or "",
+                    "readonly": _ro(full), "blocked": _bl(full),
+                })
+            except: continue
+    entries.sort(key=lambda e: (not e["is_dir"], e["name"].lower()))
+    return {"path": path, "parent": os.path.dirname(path), "entries": entries}
+
+def read_file(path):
+    path = _r(path)
+    if _bl(path): raise PermissionError("Gesperrt")
+    if os.path.getsize(path) > MAX_EDIT: raise ValueError("Datei zu groß")
+    with open(path, "r", errors="replace") as f:
+        return {"path": path, "content": f.read(), "readonly": _ro(path)}
+
+def write_file(path, content):
+    path = _r(path); _ok(path)
+    with open(path, "w") as f: f.write(content)
+    return {"ok": True}
+
+def rename(path, new_name):
+    path = _r(path); _ok(path)
+    if "/" in new_name or ".." in new_name: raise ValueError("Ungültiger Name")
+    dst = os.path.join(os.path.dirname(path), new_name)
+    os.rename(path, dst)
+    return {"ok": True, "path": dst}
+
+def copy_item(src, dst_dir):
+    src = _r(src); dst_dir = _r(dst_dir); _ok(dst_dir)
+    dst = os.path.join(dst_dir, os.path.basename(src))
+    if os.path.isdir(src): shutil.copytree(src, dst)
+    else: shutil.copy2(src, dst)
+    return {"ok": True, "dst": dst}
+
+def move(src, dst_dir):
+    src = _r(src); dst_dir = _r(dst_dir); _ok(src); _ok(dst_dir)
+    dst = os.path.join(dst_dir, os.path.basename(src))
+    shutil.move(src, dst)
+    return {"ok": True, "dst": dst}
+
+def mkdir(path, name):
+    path = _r(path); _ok(path)
+    new = os.path.join(path, name)
+    os.makedirs(new, exist_ok=False)
+    return {"ok": True, "path": new}
+
+def file_info(path):
+    path = _r(path); st = os.stat(path)
+    mime, _ = mimetypes.guess_type(path)
+    return {"name": os.path.basename(path), "path": path, "size": st.st_size,
+            "modified": st.st_mtime, "mode": stat.filemode(st.st_mode),
+            "octal": oct(stat.S_IMODE(st.st_mode))[2:], "uid": st.st_uid,
+            "gid": st.st_gid, "mime": mime, "is_dir": os.path.isdir(path)}
+
+def search(base, query, max_results=200):
+    base = _r(base); results = []; q = query.lower()
+    for root, dirs, files in os.walk(base):
+        if _bl(root): dirs.clear(); continue
+        dirs[:] = [d for d in dirs if not _bl(os.path.join(root, d))]
+        for name in dirs + files:
+            if q in name.lower():
+                full = os.path.join(root, name)
+                results.append({"name": name, "path": full, "is_dir": os.path.isdir(full)})
+                if len(results) >= max_results: return results
+    return results
+
+# ── ZIP ──
+def make_zip(paths, output_path):
+    output_path = _r(output_path); _ok(os.path.dirname(output_path))
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for p in paths:
+            p = _r(p)
+            if os.path.isdir(p):
+                for root, _, files in os.walk(p):
+                    for f in files:
+                        full = os.path.join(root, f)
+                        zf.write(full, os.path.relpath(full, os.path.dirname(p)))
+            else:
+                zf.write(p, os.path.basename(p))
+    return {"ok": True, "path": output_path}
+
+def extract_zip(path, dst_dir):
+    path = _r(path); dst_dir = _r(dst_dir); _ok(dst_dir)
+    with zipfile.ZipFile(path, "r") as zf: zf.extractall(dst_dir)
+    return {"ok": True, "dst": dst_dir}
+
+# ── Papierkorb ──
+def _load_meta():
+    try:
+        with open(TRASHMETA) as f: return json.load(f)
+    except: return []
+
+def _save_meta(data):
+    os.makedirs(TRASH, exist_ok=True)
+    with open(TRASHMETA, "w") as f: json.dump(data, f, indent=2)
+
+def delete(path):
+    """Datei/Ordner in den Papierkorb verschieben."""
+    path = _r(path); _ok(path)
+    os.makedirs(TRASH, exist_ok=True)
+    item_id = str(uuid.uuid4()).replace("-", "")
+    dst = os.path.join(TRASH, item_id)
+    shutil.move(path, dst)
+    meta = _load_meta()
+    meta.append({"id": item_id, "original": path, "name": os.path.basename(path),
+                 "deleted": time.time(), "is_dir": os.path.isdir(dst)})
+    _save_meta(meta)
+    return {"ok": True}
+
+move_to_trash = delete  # Alias
+
+def list_trash():
+    return _load_meta()
+
+def restore_trash(item_id):
+    meta = _load_meta()
+    item = next((m for m in meta if m["id"] == item_id), None)
+    if not item: raise FileNotFoundError("Nicht im Papierkorb")
+    src = os.path.join(TRASH, item_id)
+    shutil.move(src, item["original"])
+    _save_meta([m for m in meta if m["id"] != item_id])
+    return {"ok": True}
+
+def empty_trash():
+    for item in _load_meta():
+        p = os.path.join(TRASH, item["id"])
+        if os.path.isdir(p): shutil.rmtree(p, ignore_errors=True)
+        elif os.path.exists(p): os.remove(p)
+    _save_meta([])
+    return {"ok": True}
+
+# ── Share-Links ──
+def _load_shares():
+    try:
+        with open(SHAREDB) as f: return json.load(f)
+    except: return {}
+
+def _save_shares(data):
+    os.makedirs(os.path.dirname(SHAREDB), exist_ok=True)
+    with open(SHAREDB, "w") as f: json.dump(data, f, indent=2)
+
+def create_share_link(path):
+    path = _r(path)
+    if not os.path.exists(path): raise FileNotFoundError(path)
+    token = str(uuid.uuid4()).replace("-", "")[:16]
+    s = _load_shares()
+    s[token] = {"path": path, "name": os.path.basename(path), "created": time.time()}
+    _save_shares(s)
+    return {"token": token, "name": os.path.basename(path)}
+
+def resolve_share(token):
+    return _load_shares().get(token)
+
+def list_shares():
+    return _load_shares()
+
+def delete_share(token):
+    s = _load_shares(); s.pop(token, None); _save_shares(s)
+    return {"ok": True}
+
+# ── Externes SMB mounten ──
+def mount_smb(server, share_name, mountpoint, username="guest", password=""):
+    os.makedirs(mountpoint, exist_ok=True)
+    opts = f"username={username},password={password},uid=0,gid=0"
+    r = subprocess.run(["mount", "-t", "cifs", f"//{server}/{share_name}", mountpoint, "-o", opts],
+                       capture_output=True, text=True, timeout=30)
+    return {"ok": r.returncode == 0, "stderr": r.stderr}
+
+# ── Externes NFS mounten ──
+def mount_nfs(server, export, mountpoint, options=""):
+    os.makedirs(mountpoint, exist_ok=True)
+    cmd = ["mount", "-t", "nfs", f"{server}:{export}", mountpoint]
+    if options:
+        cmd += ["-o", options]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    return {"ok": r.returncode == 0, "stderr": r.stderr}
+
+# ── Helpers ──
+def is_image(p): return Path(p).suffix.lower() in {".jpg",".jpeg",".png",".gif",".webp",".svg",".bmp"}
+def is_video(p): return Path(p).suffix.lower() in {".mp4",".webm",".ogg",".mkv"}
+def is_zip(p):   return Path(p).suffix.lower() in {".zip"}

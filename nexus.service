@@ -1,0 +1,21 @@
+[Unit]
+Description=Nexus Server Panel
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/nexus
+# Zugangsdaten & Port kommen aus data/nexus.env (von install.sh erzeugt: NEXUS_USER/NEXUS_PASS/NEXUS_PORT)
+EnvironmentFile=-/opt/nexus/data/nexus.env
+ExecStart=/opt/nexus/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8080 --workers 1
+# TLS/HTTPS (optional): Zertifikat unter System -> Sicherheit -> SSL erzeugen,
+# obige Zeile auskommentieren und stattdessen verwenden:
+# ExecStart=/opt/nexus/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8080 --workers 1 --ssl-keyfile /opt/nexus/data/certs/<CN>.key --ssl-certfile /opt/nexus/data/certs/<CN>.crt
+# danach: systemctl daemon-reload && systemctl restart nexus  (Aufruf dann via https://)
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

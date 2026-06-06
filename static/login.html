@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus · Anmeldung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0b14;--bg2:#0d0e1a;--bg3:#111221;--glass:rgba(255,255,255,.04);--glass-hover:rgba(122,74,255,.08);--border:rgba(255,255,255,.06);--border-accent:rgba(122,74,255,.3);--text:#f0f0ff;--text2:rgba(240,240,255,.55);--text3:rgba(240,240,255,.28);--accent:#7a4aff;--accent-light:#9d7aff;--green:#22c55e;--red:#ef4444;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#0f0c1a}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellipse at 60% 0%,#1a1040 0%,#0a0b14 60%);background-attachment:fixed;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-wrap{width:100%;max-width:380px}
+.brand{text-align:center;margin-bottom:24px}
+.brand .logo{font-size:26px;font-weight:700;letter-spacing:.06em;color:#fff}
+.brand .sub{font-size:12px;color:var(--text3);margin-top:6px;letter-spacing:.04em}
+.card{background:var(--bg2);border:1px solid var(--border-accent);border-radius:16px;padding:28px 26px;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.card h1{font-size:16px;font-weight:600;margin-bottom:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:7px}
+.field input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:14px;transition:border-color .15s,background .15s}
+.field input:focus{outline:none;border-color:rgba(122,74,255,.5);background:rgba(122,74,255,.04)}
+.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;font-size:12px;color:var(--text2)}
+.row label{display:flex;align-items:center;gap:7px;cursor:pointer}
+.row input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.btn-login{width:100%;background:var(--accent);color:#fff;border:none;padding:11px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-login:hover{background:#8d64ff}
+.btn-login:disabled{opacity:.6;cursor:not-allowed}
+.error{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:9px;padding:10px 12px;font-size:12.5px;margin-bottom:16px}
+.error.show{display:block}
+.foot{text-align:center;font-size:11px;color:var(--text3);margin-top:20px;line-height:1.6}
+.lock-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:var(--text3)}
+</style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="brand">
+      <div class="logo">NEXUS</div>
+      <div class="sub">Server Panel</div>
+    </div>
+    <div class="card">
+      <h1>Anmeldung</h1>
+      <div class="error" id="error"></div>
+      <form id="login-form" autocomplete="on">
+        <div class="field">
+          <label for="username">Benutzername</label>
+          <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Passwort</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="remember" name="remember"> Angemeldet bleiben</label>
+        </div>
+        <button type="submit" class="btn-login" id="submit-btn">Anmelden</button>
+      </form>
+      <div class="lock-note" id="conn-note"></div>
+    </div>
+    <div class="foot">Nexus Server Panel</div>
+  </div>
+
+<script>
+const $=s=>document.querySelector(s);
+const form=$('#login-form'), errBox=$('#error'), btn=$('#submit-btn');
+
+// Hinweis, falls unverschlüsselt aufgerufen (Passwort sollte nur über HTTPS gesendet werden)
+if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
+  $('#conn-note').textContent='⚠ Unverschlüsselte Verbindung – HTTPS empfohlen';
+}
+
+function showError(msg){errBox.textContent=msg;errBox.classList.add('show');}
+function clearError(){errBox.classList.remove('show');}
+
+form.addEventListener('submit', async e=>{
+  e.preventDefault();
+  clearError();
+  btn.disabled=true; btn.textContent='Anmelden…';
+  try{
+    const body=new URLSearchParams();
+    body.set('username', $('#username').value);
+    body.set('password', $('#password').value);
+    body.set('remember', $('#remember').checked ? '1' : '0');
+    const r=await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body,
+      credentials:'same-origin'
+    });
+    let data={}; try{data=await r.json();}catch(_){}
+    if(r.ok && data.ok){
+      const params=new URLSearchParams(location.search);
+      location.href = params.get('next') || '/';
+      return;
+    }
+    if(r.status===429){ showError('Zu viele Versuche. Bitte kurz warten.'); }
+    else if(r.status===401){ showError('Benutzername oder Passwort falsch.'); }
+    else { showError('Anmeldung fehlgeschlagen ('+r.status+').'); }
+  }catch(err){
+    showError('Verbindung zum Server fehlgeschlagen.');
+  }finally{
+    btn.disabled=false; btn.textContent='Anmelden';
+  }
+});
+</script>
+</body>
+</html>
