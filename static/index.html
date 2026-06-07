@@ -3470,20 +3470,23 @@ function cardMetric(label,value){return `<div><span>${esc(label)}</span><strong>
 function simpleTable(headers,rows){
   return `<table class="nx-muted-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="'+headers.length+'">'+emptyState('Nothing here yet')+'</td></tr>'}</tbody></table>`;
 }
+function primaryVolume(d){return (d.children||[]).find(x=>x.mountpoint)||(d.children||[]).find(x=>x.fstype)||(d.children||[])[0]||d;}
 function renderDeviceCards(devs){
   return `<div class="nx-card-grid">${(devs||[]).map(d=>{
+    const volume=primaryVolume(d);
+    const hasVolumes=!!(d.children&&d.children.length);
     const used=d.children&&d.children.length?`${d.children.length} volume${d.children.length===1?'':'s'}`:'No volumes yet';
-    const tone=d.protected?'warn':d.mountpoint?'good':'';
+    const status=d.protected?statusBadge('System disk','warn'):volume.mountpoint?statusBadge('Mounted','good'):hasVolumes?statusBadge('Volume','warn'):statusBadge('Available','good');
     return `<div class="nx-action-card">
-      <div class="nx-action-head"><div class="nx-action-title">${deviceTitle(d)}</div>${d.protected?statusBadge('System disk','warn'):statusBadge('Available','good')}</div>
+      <div class="nx-action-head"><div class="nx-action-title">${deviceTitle(d)}</div>${status}</div>
       <div class="nx-action-sub">${esc(d.model||d.type||'Disk')} · ${fmtBytes(d.size)} · ${used}</div>
       <div class="nx-kv">
-        ${cardMetric('Filesystem',esc(d.fstype||'None'))}
-        ${cardMetric('Mounted at',esc(d.mountpoint||'Not mounted'))}
+        ${cardMetric('Filesystem',esc(volume.fstype||'None'))}
+        ${cardMetric('Mounted at',esc(volume.mountpoint||'Not mounted'))}
       </div>
       <div class="nx-action-row">
-        ${!d.protected&&d.type==='disk'?`<button class="btn sm" onclick="diskWizard('${esc(d.name)}')">Set up disk</button>`:''}
-        ${!d.protected&&/^(ext[234]|xfs|btrfs)$/.test(d.fstype||'')?`<button class="btn ghost sm" onclick="fsGrowForm('${esc(d.name)}','${esc(d.mountpoint||'')}','${esc(d.fstype)}')">Grow filesystem</button>`:''}
+        ${!d.protected&&d.type==='disk'&&!hasVolumes?`<button class="btn sm" onclick="diskWizard('${esc(d.name)}')">Set up disk</button>`:''}
+        ${!d.protected&&/^(ext[234]|xfs|btrfs)$/.test(volume.fstype||'')?`<button class="btn ghost sm" onclick="fsGrowForm('${esc(volume.name)}','${esc(volume.mountpoint||'')}','${esc(volume.fstype)}')">Grow filesystem</button>`:''}
       </div>
       ${d.children&&d.children.length?advancedDetails('Volumes',renderDeviceCards(d.children),false):''}
     </div>`;
