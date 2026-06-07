@@ -1263,6 +1263,16 @@ def sysmgr_actax_release(user: str = Depends(auth)):
     return system_mgr.actax_release_status()
 
 
+@app.post("/api/sysmgr/actax-update/apply")
+def sysmgr_actax_update_apply(user: str = Depends(auth)):
+    return system_mgr.start_actax_update()
+
+
+@app.get("/api/sysmgr/actax-update/log")
+def sysmgr_actax_update_log(user: str = Depends(auth)):
+    return system_mgr.actax_update_log()
+
+
 @app.post("/api/sysmgr/updates/apply")
 def sysmgr_updates_apply(user: str = Depends(auth)):
     from modules import jobs

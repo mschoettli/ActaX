@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import tempfile
 import subprocess
 import urllib.error
 import urllib.request
@@ -9,6 +10,8 @@ import urllib.request
 
 ACTAX_REPO_API = "https://api.github.com/repos/mschoettli/ActaX/commits/main"
 ACTAX_REPO_URL = "https://github.com/mschoettli/ActaX"
+ACTAX_INSTALL_URL = "https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh"
+ACTAX_UPDATE_LOG = "/opt/actax/data/actax-update.log"
 VERSION_FILE = os.environ.get(
     "ACTAX_VERSION_FILE",
     "/opt/actax/data/actax.version",
@@ -45,6 +48,91 @@ def list_upgradable():
 
 def apply_updates():
     return _run(["apt-get", "upgrade", "-y"], timeout=1800)
+
+
+def start_actax_update():
+    """
+    Start a detached ActaX self-update.
+
+    The update runs as a transient systemd unit because the web service restarts
+    during the update and cannot keep its own background thread alive.
+
+    Returns:
+    --------
+        dict[str, str | bool]:
+            Contains the start result and update log path.
+
+    Raises:
+    -------
+    RuntimeError:
+        Raised when the transient update unit cannot be started.
+    """
+    os.makedirs(os.path.dirname(ACTAX_UPDATE_LOG), exist_ok=True)
+    script = f"""#!/usr/bin/env bash
+set -euo pipefail
+LOG="{ACTAX_UPDATE_LOG}"
+exec > "$LOG" 2>&1
+echo "ActaX update started: $(date -Is)"
+WORK_DIR="$(mktemp -d)"
+cleanup() {{ rm -rf "$WORK_DIR"; }}
+trap cleanup EXIT
+echo "Downloading latest ActaX release..."
+curl -fsSL "{ACTAX_INSTALL_URL}" -o "$WORK_DIR/install.sh"
+chmod +x "$WORK_DIR/install.sh"
+REMOTE_COMMIT="$(curl -fsSL {ACTAX_REPO_API} 2>/dev/null | sed -n 's/.*"sha": "\\([0-9a-f]\\{{40\\}}\\)".*/\\1/p' | head -n 1 || true)"
+echo "Latest commit: ${{REMOTE_COMMIT:-unknown}}"
+echo "Running installer in update mode..."
+if [ -f /opt/actax/data/actax.env ]; then
+  set -a
+  . /opt/actax/data/actax.env
+  set +a
+fi
+ACTAX_SOURCE_COMMIT="$REMOTE_COMMIT" bash "$WORK_DIR/install.sh" --yes
+echo "ActaX update finished: $(date -Is)"
+"""
+    with tempfile.NamedTemporaryFile(
+        "w", delete=False, encoding="utf-8", prefix="actax-update-", suffix=".sh"
+    ) as tmp:
+        tmp.write(script)
+        script_path = tmp.name
+    os.chmod(script_path, 0o700)
+    result = subprocess.run(
+        [
+            "systemd-run",
+            "--unit=actax-self-update",
+            "--collect",
+            "/bin/bash",
+            script_path,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "systemd-run failed")
+    return {
+        "ok": True,
+        "message": "ActaX update started. The service will restart when the update finishes.",
+        "log": ACTAX_UPDATE_LOG,
+        "stdout": result.stdout,
+    }
+
+
+def actax_update_log():
+    """
+    Return the latest ActaX self-update log output.
+
+    Returns:
+    --------
+        dict[str, str | bool]:
+            Contains availability and recent log text.
+    """
+    try:
+        with open(ACTAX_UPDATE_LOG, encoding="utf-8", errors="replace") as log_file:
+            data = log_file.read()[-12000:]
+    except OSError:
+        return {"ok": False, "log": ""}
+    return {"ok": True, "log": data}
 
 
 def _git_commit():

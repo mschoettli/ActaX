@@ -2723,6 +2723,43 @@ function pollUpdateJob(id,reboot){
   tick();
 }
 
+window.actaxUpdateInstall=async()=>{
+  const btn=$('#actax-upd-go');
+  const out=$('#actax-upd-out');
+  if(btn){btn.disabled=true;btn.textContent='Starting update...';}
+  if(out){
+    out.style.display='block';
+    out.textContent='Starting ActaX self-update. The service will restart when the update finishes.';
+  }
+  try{
+    const r=await post('/sysmgr/actax-update/apply',{});
+    if(!r||r.ok===false){
+      throw new Error((r&&r.error)||'Update did not start');
+    }
+    toast('ActaX update started');
+    if(btn)btn.textContent='Update running...';
+    pollActaxUpdateLog(Date.now()+45000);
+    setTimeout(()=>{location.reload();},35000);
+  }catch(e){
+    toast('ActaX update failed: '+e.message,'error');
+    if(out)out.textContent='Failed to start ActaX update: '+e.message;
+    if(btn){btn.disabled=false;btn.textContent='Install ActaX update';}
+  }
+};
+function pollActaxUpdateLog(until){
+  const out=$('#actax-upd-out');
+  const tick=async()=>{
+    try{
+      const r=await api('/sysmgr/actax-update/log');
+      if(out&&r.log)out.textContent=r.log;
+    }catch(e){
+      if(out)out.textContent+='\nActaX is restarting. Reloading shortly...';
+    }
+    if(Date.now()<until)setTimeout(tick,2500);
+  };
+  tick();
+}
+
 // ═══ Widget-Detail-Modals ═══
 const WIDGET_META={
   cpu:{icon:'🖥',name:'CPU – Details'},
@@ -3765,9 +3802,11 @@ const renderSystemOriginalFallback=async(body,tab)=>{
           </div>
           <p class="nx-action-sub">${remote.message?esc(remote.message):'ActaX checks the latest main branch commit on GitHub.'}</p>
           <div class="nx-action-row">
+            ${actax.update_available?`<button class="btn sm" id="actax-upd-go" onclick="actaxUpdateInstall()">Install ActaX update</button>`:''}
             ${remote.url?`<button class="btn ghost sm" onclick="window.open('${esc(remote.url)}','_blank')">Open commit</button>`:''}
             <button class="btn ghost sm" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh | sudo bash')">Copy update command</button>
           </div>
+          <pre class="logbox" id="actax-upd-out" style="display:none;margin-top:12px;max-height:220px"></pre>
         </div>
       </div>
       <pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
