@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# ActaX – Einsteigerfreundliches Installationsskript
+# runvard – Einsteigerfreundliches Installationsskript
 # Aufruf:  sudo bash install.sh
 #
 set -euo pipefail
@@ -45,7 +45,7 @@ spinner() {
 }
 
 # Befehl im Hintergrund ausführen, derweil Spinner zeigen; Logausgabe puffern
-SPIN_LOG="/tmp/actax_install.log"
+SPIN_LOG="/tmp/runvard_install.log"
 run_spin() {
   local text="$1"; shift
   ( "$@" ) >"$SPIN_LOG" 2>&1 &
@@ -137,12 +137,12 @@ install_apt_packages() {
 }
 
 # Bei jedem Fehler eine hilfreiche Meldung statt eines kryptischen Abbruchs
-trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO). Prüfe die Ausgabe oben.\n  Logs nach der Installation:  journalctl -u actax -e"' ERR
+trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO). Prüfe die Ausgabe oben.\n  Logs nach der Installation:  journalctl -u runvard -e"' ERR
 
 # ─────────────────────────── Kommandozeilen-Optionen ───────────────────────────
 usage() {
   cat << USAGE
-ActaX – Installations-Assistent
+runvard – Installations-Assistent
 
 Verwendung:
   sudo bash install.sh [Optionen]
@@ -154,21 +154,21 @@ Optionen:
   -h, --help         Diese Hilfe anzeigen
 
 Das Passwort wird aus Sicherheitsgründen nicht als Option übergeben, sondern
-interaktiv abgefragt oder über die Umgebungsvariable ACTAX_PASS gesetzt
+interaktiv abgefragt oder über die Umgebungsvariable RUNVARD_PASS gesetzt
 (leer = automatisch erzeugtes Zufallspasswort).
 
 Beispiele:
   sudo bash install.sh --port 9090
-  sudo ACTAX_PASS='geheim' bash install.sh --yes --port 8443
+  sudo RUNVARD_PASS='geheim' bash install.sh --yes --port 8443
 USAGE
 }
 
 _need() { [ -n "${2:-}" ] || die "Option $1 benötigt einen Wert (--help für Hilfe)"; }
 while [ $# -gt 0 ]; do
   case "$1" in
-    --port)    _need "$1" "${2:-}"; ACTAX_PORT="$2"; shift 2 ;;
-    --user)    _need "$1" "${2:-}"; ACTAX_USER="$2"; shift 2 ;;
-    -y|--yes)  ACTAX_YES=1; shift ;;
+    --port)    _need "$1" "${2:-}"; RUNVARD_PORT="$2"; shift 2 ;;
+    --user)    _need "$1" "${2:-}"; RUNVARD_USER="$2"; shift 2 ;;
+    -y|--yes)  RUNVARD_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *)         die "Unbekannte Option: $1  (--help für Hilfe)" ;;
   esac
@@ -178,12 +178,7 @@ done
 clear 2>/dev/null || true
 echo -e "${CYAN}${BOLD}"
 cat << 'BANNER'
-   █████╗  ██████╗████████╗ █████╗ ██╗  ██╗
-  ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗╚██╗██╔╝
-  ███████║██║        ██║   ███████║ ╚███╔╝
-  ██╔══██║██║        ██║   ██╔══██║ ██╔██╗
-  ██║  ██║╚██████╗   ██║   ██║  ██║██╔╝ ██╗
-  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝
+  runvard
 BANNER
 echo -e "${NC}  ${DIM}Dein Server. Deine Kontrolle. – Installations-Assistent${NC}\n"
 
@@ -191,24 +186,38 @@ echo -e "${NC}  ${DIM}Dein Server. Deine Kontrolle. – Installations-Assistent$
 [ "$(id -u)" -eq 0 ] || die "Bitte mit root-Rechten starten:  ${BOLD}sudo bash install.sh${NC}"
 command -v apt-get >/dev/null 2>&1 || die "Dieses Skript benötigt Debian/Ubuntu (apt wurde nicht gefunden)."
 
-INSTALL_DIR="/opt/actax"
-SERVICE_FILE="/etc/systemd/system/actax.service"
-ENV_FILE="${INSTALL_DIR}/data/actax.env"
-VERSION_FILE="${INSTALL_DIR}/data/actax.version"
+INSTALL_DIR="/opt/runvard"
+SERVICE_FILE="/etc/systemd/system/runvard.service"
+ENV_FILE="${INSTALL_DIR}/data/runvard.env"
+VERSION_FILE="${INSTALL_DIR}/data/runvard.version"
+LEGACY_INSTALL_DIR="/opt/actax"
+LEGACY_SERVICE_FILE="/etc/systemd/system/actax.service"
+LEGACY_ENV_FILE="${LEGACY_INSTALL_DIR}/data/actax.env"
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-SRC="${ACTAX_SOURCE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
-[ -f "${SRC}/server.py" ] || die "server.py nicht gefunden. Installer bitte aus dem ActaX-Release starten."
+SRC="${RUNVARD_SOURCE_DIR:-${ACTAX_SOURCE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}}"
+[ -f "${SRC}/server.py" ] || die "server.py nicht gefunden. Installer bitte aus dem runvard-Release starten."
+
+if [ ! -f "$ENV_FILE" ] && [ -f "$LEGACY_ENV_FILE" ]; then
+  # shellcheck source=/dev/null
+  . "$LEGACY_ENV_FILE"
+  RUNVARD_USER="${RUNVARD_USER:-${ACTAX_USER:-}}"
+  RUNVARD_PASS="${RUNVARD_PASS:-${ACTAX_PASS:-}}"
+  RUNVARD_PORT="${RUNVARD_PORT:-${ACTAX_PORT:-}}"
+fi
 
 # Vorhandene Installation erkennen
 REINSTALL=0
 if [ -d "$INSTALL_DIR" ] && [ -f "$SERVICE_FILE" ]; then
   REINSTALL=1
-  warn "ActaX ist bereits installiert. Der Code wird aktualisiert, deine Daten (Konten, Schlüssel, Zertifikate) bleiben erhalten."
+  warn "runvard ist bereits installiert. Der Code wird aktualisiert, deine Daten (Konten, Schlüssel, Zertifikate) bleiben erhalten."
+elif [ -d "$LEGACY_INSTALL_DIR" ] || [ -f "$LEGACY_SERVICE_FILE" ]; then
+  REINSTALL=1
+  warn "actax-Installation gefunden. Daten und Zugangsdaten werden nach runvard übernommen."
 fi
 
 # ─────────────────────────── Eingaben (mit Defaults) ───────────────────────────
-ASSUME_YES="${ACTAX_YES:-0}"
+ASSUME_YES="${RUNVARD_YES:-${ACTAX_YES:-0}}"
 ask() {  # ask "Frage" "default" -> Antwort auf stdout
   local prompt="$1" def="$2" ans=""
   if [ "$ASSUME_YES" = "1" ]; then echo "$def"; return; fi
@@ -217,10 +226,10 @@ ask() {  # ask "Frage" "default" -> Antwort auf stdout
 }
 
 step "Konfiguration"
-ADMIN_USER="$(ask 'Admin-Benutzername' "${ACTAX_USER:-admin}")"
+ADMIN_USER="$(ask 'Admin-Benutzername' "${RUNVARD_USER:-${ACTAX_USER:-admin}}")"
 
 # Passwort: versteckt einlesen, bestätigen; leer => sicheres Zufallspasswort
-ADMIN_PASS="${ACTAX_PASS:-}"
+ADMIN_PASS="${RUNVARD_PASS:-${ACTAX_PASS:-}}"
 GEN_PASS=0
 if [ "$ASSUME_YES" != "1" ] && [ -z "$ADMIN_PASS" ]; then
   while :; do
@@ -239,7 +248,7 @@ fi
 
 # Port (validiert)
 while :; do
-  PORT="$(ask 'Web-Port' "${ACTAX_PORT:-8080}")"
+  PORT="$(ask 'Web-Port' "${RUNVARD_PORT:-${ACTAX_PORT:-8080}}")"
   if [[ "$PORT" =~ ^[0-9]+$ ]] && [ "$PORT" -ge 1 ] && [ "$PORT" -le 65535 ]; then break; fi
   warn "Bitte eine gültige Portnummer (1–65535) angeben."
   [ "$ASSUME_YES" = "1" ] && die "Ungültiger Port: ${PORT}"
@@ -283,7 +292,7 @@ run_spin "Paketquellen aktualisieren …" apt-get update -qq \
 
 install_apt_packages "${PKGS[@]}"
 
-# Docker Compose v2 sicherstellen – ActaX' Apps-Funktion braucht "docker compose".
+# Docker Compose v2 sicherstellen – runvard' Apps-Funktion braucht "docker compose".
 # Debians docker.io bringt das Plugin NICHT mit.
 case " ${PKGS[*]} " in
   *" docker.io "*)
@@ -311,7 +320,11 @@ case " ${PKGS[*]} " in
 esac
 
 # ─────────────────────────── 2. Dateien kopieren ───────────────────────────
-phase "ActaX nach ${INSTALL_DIR} kopieren"
+phase "runvard nach ${INSTALL_DIR} kopieren"
+if [ ! -d "$INSTALL_DIR" ] && [ -d "$LEGACY_INSTALL_DIR" ]; then
+  mv "$LEGACY_INSTALL_DIR" "$INSTALL_DIR"
+  ok "Bestehende Daten nach ${INSTALL_DIR} übernommen."
+fi
 mkdir -p "$INSTALL_DIR" "$INSTALL_DIR/data"
 if [ "$SRC" != "$INSTALL_DIR" ]; then
   # data/ niemals überschreiben; venv & Müll ausschließen
@@ -323,7 +336,7 @@ if [ "$SRC" != "$INSTALL_DIR" ]; then
 else
   info "Installation läuft bereits im Zielverzeichnis – kein Kopieren nötig."
 fi
-SOURCE_COMMIT="${ACTAX_SOURCE_COMMIT:-}"
+SOURCE_COMMIT="${RUNVARD_SOURCE_COMMIT:-${ACTAX_SOURCE_COMMIT:-}}"
 if [ -z "$SOURCE_COMMIT" ] && [ -d "$SRC/.git" ] && command -v git >/dev/null 2>&1; then
   SOURCE_COMMIT="$(git -C "$SRC" rev-parse HEAD 2>/dev/null || true)"
 fi
@@ -370,10 +383,10 @@ ok "Python-Umgebung bereit."
 phase "Zugangsdaten & Konfiguration schreiben"
 umask 077
 cat > "$ENV_FILE" << EOF
-# Von install.sh erzeugt – zentrale Konfiguration für ActaX
-ACTAX_USER=${ADMIN_USER}
-ACTAX_PASS=${ADMIN_PASS}
-ACTAX_PORT=${PORT}
+# Von install.sh erzeugt – zentrale Konfiguration für runvard
+RUNVARD_USER=${ADMIN_USER}
+RUNVARD_PASS=${ADMIN_PASS}
+RUNVARD_PORT=${PORT}
 EOF
 chmod 600 "$ENV_FILE"
 ok "Konfiguration gespeichert: ${DIM}${ENV_FILE}${NC}"
@@ -382,7 +395,7 @@ ok "Konfiguration gespeichert: ${DIM}${ENV_FILE}${NC}"
 phase "Dienst einrichten und starten"
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=ActaX Server Panel
+Description=runvard Server Panel
 After=network-online.target docker.service
 Wants=network-online.target
 
@@ -393,7 +406,7 @@ WorkingDirectory=${INSTALL_DIR}
 EnvironmentFile=${ENV_FILE}
 ExecStart=${INSTALL_DIR}/venv/bin/uvicorn server:app --host 0.0.0.0 --port ${PORT} --workers 1
 # TLS/HTTPS optional: Zertifikat unter System → Sicherheit → SSL erzeugen, dann
-# obige Zeile durch folgende ersetzen und 'systemctl daemon-reload && systemctl restart actax':
+# obige Zeile durch folgende ersetzen und 'systemctl daemon-reload && systemctl restart runvard':
 # ExecStart=${INSTALL_DIR}/venv/bin/uvicorn server:app --host 0.0.0.0 --port ${PORT} --workers 1 --ssl-keyfile ${INSTALL_DIR}/data/certs/<CN>.key --ssl-certfile ${INSTALL_DIR}/data/certs/<CN>.crt
 Restart=always
 RestartSec=5
@@ -403,8 +416,14 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable actax >/dev/null 2>&1 || true
-systemctl restart actax
+if [ -f "$LEGACY_SERVICE_FILE" ]; then
+  systemctl stop actax >/dev/null 2>&1 || true
+  systemctl disable actax >/dev/null 2>&1 || true
+  rm -f "$LEGACY_SERVICE_FILE"
+  systemctl daemon-reload
+fi
+systemctl enable runvard >/dev/null 2>&1 || true
+systemctl restart runvard
 
 # ─────────────────────────── 6. Health-Check ───────────────────────────
 phase "Funktionsprüfung"
@@ -423,9 +442,9 @@ LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"; LAN_IP="${LAN_IP:-127.0.
 URL="http://${LAN_IP}:${PORT}"
 
 case "$HTTP" in
-  200|302|307) ok "ActaX läuft und ist erreichbar." ;;
-  000) die "Dienst antwortet nicht. Status:  journalctl -u actax -e" ;;
-  *)   die "Unerwartete Antwort (HTTP ${HTTP}). Status:  journalctl -u actax -e" ;;
+  200|302|307) ok "runvard läuft und ist erreichbar." ;;
+  000) die "Dienst antwortet nicht. Status:  journalctl -u runvard -e" ;;
+  *)   die "Unerwartete Antwort (HTTP ${HTTP}). Status:  journalctl -u runvard -e" ;;
 esac
 
 # ─────────────────────────── Abschluss ───────────────────────────
@@ -443,10 +462,10 @@ else
 fi
 echo
 echo -e "  ${DIM}Nützliche Befehle:${NC}"
-echo -e "    Status   : ${BOLD}systemctl status actax${NC}"
-echo -e "    Logs     : ${BOLD}journalctl -u actax -f${NC}"
-echo -e "    Neustart : ${BOLD}systemctl restart actax${NC}"
-echo -e "    Stoppen  : ${BOLD}systemctl stop actax${NC}"
+echo -e "    Status   : ${BOLD}systemctl status runvard${NC}"
+echo -e "    Logs     : ${BOLD}journalctl -u runvard -f${NC}"
+echo -e "    Neustart : ${BOLD}systemctl restart runvard${NC}"
+echo -e "    Stoppen  : ${BOLD}systemctl stop runvard${NC}"
 echo
 [ "$REINSTALL" = "1" ] && info "Hinweis: Bestehende Daten wurden beibehalten."
 echo -e "  ${DIM}Tipp: Weitere Konten findest du oben rechts im Benutzermenü.${NC}"

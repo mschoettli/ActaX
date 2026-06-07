@@ -1,8 +1,8 @@
 """
-Apps-Modul – kuratierter App-Store für ActaX.
+Apps-Modul – kuratierter App-Store für runvard.
 Installiert self-hosted Apps als Docker-Compose-Projekte.
 
-Struktur pro App:  /opt/actax/data/apps/<id>/docker-compose.yml
+Struktur pro App:  /opt/runvard/data/apps/<id>/docker-compose.yml
 Icons:             https://cdn.jsdelivr.net/gh/selfhst/icons/svg/<icon>.svg
 Update-Check:      alle 12h im Hintergrund (Cache in apps_updates.json)
 """
@@ -12,8 +12,8 @@ import time
 import subprocess
 import threading
 
-APPS_DIR = "/opt/actax/data/apps"
-UPDATE_CACHE = "/opt/actax/data/apps_updates.json"
+APPS_DIR = "/opt/runvard/data/apps"
+UPDATE_CACHE = "/opt/runvard/data/apps_updates.json"
 UPDATE_INTERVAL = 12 * 3600  # 12 Stunden
 ICON_BASE = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg"
 

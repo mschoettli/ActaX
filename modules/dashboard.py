@@ -6,8 +6,8 @@ import os
 import json
 import subprocess
 
-DASH_FILE = "/opt/actax/data/dashboard.json"
-APPS_DIR = "/opt/actax/data/apps"
+DASH_FILE = "/opt/runvard/data/dashboard.json"
+APPS_DIR = "/opt/runvard/data/apps"
 
 
 def _load():

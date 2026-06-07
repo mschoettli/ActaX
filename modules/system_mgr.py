@@ -8,13 +8,13 @@ import urllib.error
 import urllib.request
 
 
-ACTAX_REPO_API = "https://api.github.com/repos/mschoettli/ActaX/commits/main"
-ACTAX_REPO_URL = "https://github.com/mschoettli/ActaX"
-ACTAX_INSTALL_URL = "https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh"
-ACTAX_UPDATE_LOG = "/opt/actax/data/actax-update.log"
+RUNVARD_REPO_API = "https://api.github.com/repos/mschoettli/runvard/commits/main"
+RUNVARD_REPO_URL = "https://github.com/mschoettli/runvard"
+RUNVARD_INSTALL_URL = "https://raw.githubusercontent.com/mschoettli/runvard/main/install.sh"
+RUNVARD_UPDATE_LOG = "/opt/runvard/data/runvard-update.log"
 VERSION_FILE = os.environ.get(
-    "ACTAX_VERSION_FILE",
-    "/opt/actax/data/actax.version",
+    "RUNVARD_VERSION_FILE",
+    "/opt/runvard/data/runvard.version",
 )
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -50,9 +50,9 @@ def apply_updates():
     return _run(["apt-get", "upgrade", "-y"], timeout=1800)
 
 
-def start_actax_update():
+def start_runvard_update():
     """
-    Start a detached ActaX self-update.
+    Start a detached runvard self-update.
 
     The update runs as a transient systemd unit because the web service restarts
     during the update and cannot keep its own background thread alive.
@@ -67,31 +67,38 @@ def start_actax_update():
     RuntimeError:
         Raised when the transient update unit cannot be started.
     """
-    os.makedirs(os.path.dirname(ACTAX_UPDATE_LOG), exist_ok=True)
+    os.makedirs(os.path.dirname(RUNVARD_UPDATE_LOG), exist_ok=True)
     script = f"""#!/usr/bin/env bash
 set -euo pipefail
-LOG="{ACTAX_UPDATE_LOG}"
+LOG="{RUNVARD_UPDATE_LOG}"
 exec > "$LOG" 2>&1
-echo "ActaX update started: $(date -Is)"
+echo "runvard update started: $(date -Is)"
 WORK_DIR="$(mktemp -d)"
 cleanup() {{ rm -rf "$WORK_DIR"; }}
 trap cleanup EXIT
-echo "Downloading latest ActaX release..."
-curl -fsSL "{ACTAX_INSTALL_URL}" -o "$WORK_DIR/install.sh"
+echo "Downloading latest runvard release..."
+curl -fsSL "{RUNVARD_INSTALL_URL}" -o "$WORK_DIR/install.sh"
 chmod +x "$WORK_DIR/install.sh"
-REMOTE_COMMIT="$(curl -fsSL {ACTAX_REPO_API} 2>/dev/null | sed -n 's/.*"sha": "\\([0-9a-f]\\{{40\\}}\\)".*/\\1/p' | head -n 1 || true)"
+REMOTE_COMMIT="$(curl -fsSL {RUNVARD_REPO_API} 2>/dev/null | sed -n 's/.*"sha": "\\([0-9a-f]\\{{40\\}}\\)".*/\\1/p' | head -n 1 || true)"
 echo "Latest commit: ${{REMOTE_COMMIT:-unknown}}"
 echo "Running installer in update mode..."
-if [ -f /opt/actax/data/actax.env ]; then
+if [ -f /opt/runvard/data/runvard.env ]; then
+  set -a
+  . /opt/runvard/data/runvard.env
+  set +a
+elif [ -f /opt/actax/data/actax.env ]; then
   set -a
   . /opt/actax/data/actax.env
+  RUNVARD_USER="${{RUNVARD_USER:-${{ACTAX_USER:-}}}}"
+  RUNVARD_PASS="${{RUNVARD_PASS:-${{ACTAX_PASS:-}}}}"
+  RUNVARD_PORT="${{RUNVARD_PORT:-${{ACTAX_PORT:-}}}}"
   set +a
 fi
-ACTAX_SOURCE_COMMIT="$REMOTE_COMMIT" bash "$WORK_DIR/install.sh" --yes
-echo "ActaX update finished: $(date -Is)"
+RUNVARD_SOURCE_COMMIT="$REMOTE_COMMIT" bash "$WORK_DIR/install.sh" --yes
+echo "runvard update finished: $(date -Is)"
 """
     with tempfile.NamedTemporaryFile(
-        "w", delete=False, encoding="utf-8", prefix="actax-update-", suffix=".sh"
+        "w", delete=False, encoding="utf-8", prefix="runvard-update-", suffix=".sh"
     ) as tmp:
         tmp.write(script)
         script_path = tmp.name
@@ -99,7 +106,7 @@ echo "ActaX update finished: $(date -Is)"
     result = subprocess.run(
         [
             "systemd-run",
-            "--unit=actax-self-update",
+            "--unit=runvard-self-update",
             "--collect",
             "/bin/bash",
             script_path,
@@ -112,15 +119,15 @@ echo "ActaX update finished: $(date -Is)"
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "systemd-run failed")
     return {
         "ok": True,
-        "message": "ActaX update started. The service will restart when the update finishes.",
-        "log": ACTAX_UPDATE_LOG,
+        "message": "runvard update started. The service will restart when the update finishes.",
+        "log": RUNVARD_UPDATE_LOG,
         "stdout": result.stdout,
     }
 
 
-def actax_update_log():
+def runvard_update_log():
     """
-    Return the latest ActaX self-update log output.
+    Return the latest runvard self-update log output.
 
     Returns:
     --------
@@ -128,7 +135,7 @@ def actax_update_log():
             Contains availability and recent log text.
     """
     try:
-        with open(ACTAX_UPDATE_LOG, encoding="utf-8", errors="replace") as log_file:
+        with open(RUNVARD_UPDATE_LOG, encoding="utf-8", errors="replace") as log_file:
             data = log_file.read()[-12000:]
     except OSError:
         return {"ok": False, "log": ""}
@@ -156,10 +163,10 @@ def _stored_commit():
 
 def _remote_commit():
     req = urllib.request.Request(
-        ACTAX_REPO_API,
+        RUNVARD_REPO_API,
         headers={
             "Accept": "application/vnd.github+json",
-            "User-Agent": "ActaX-Update-Check",
+            "User-Agent": "runvard-Update-Check",
         },
     )
     try:
@@ -173,19 +180,19 @@ def _remote_commit():
         "ok": bool(re.fullmatch(r"[0-9a-f]{40}", commit)),
         "commit": commit,
         "short": commit[:7] if commit else "",
-        "url": data.get("html_url") or f"{ACTAX_REPO_URL}/commit/{commit}",
+        "url": data.get("html_url") or f"{RUNVARD_REPO_URL}/commit/{commit}",
         "message": (info.get("message") or "").splitlines()[0],
         "date": ((info.get("committer") or {}).get("date") or ""),
     }
 
 
-def actax_release_status():
-    """Return local and GitHub release status for ActaX."""
+def runvard_release_status():
+    """Return local and GitHub release status for runvard."""
     local = _stored_commit() or _git_commit()
     remote = _remote_commit()
     remote_commit = remote.get("commit", "") if remote.get("ok") else ""
     return {
-        "repo": ACTAX_REPO_URL,
+        "repo": RUNVARD_REPO_URL,
         "branch": "main",
         "local_commit": local,
         "local_short": local[:7] if local else "",
@@ -315,7 +322,7 @@ import os as _os
 import glob as _glob
 
 _AUTO_UPGRADES = "/etc/apt/apt.conf.d/20auto-upgrades"
-_UU_DROPIN = "/etc/apt/apt.conf.d/52actax-unattended"
+_UU_DROPIN = "/etc/apt/apt.conf.d/52runvard-unattended"
 _TIME_RE = re.compile(r"^([01]?\d|2[0-3]):[0-5]\d$")
 
 
@@ -358,7 +365,7 @@ def unattended_set(enable, auto_reboot=False, reboot_time="02:00"):
             f.write(f'APT::Periodic::Update-Package-Lists "{on}";\n')
             f.write(f'APT::Periodic::Unattended-Upgrade "{on}";\n')
         with open(_UU_DROPIN, "w") as f:
-            f.write("// Von ActaX verwaltet – überschreibt Paket-Defaults\n")
+            f.write("// Von runvard verwaltet – überschreibt Paket-Defaults\n")
             f.write(f'Unattended-Upgrade::Automatic-Reboot "{"true" if auto_reboot else "false"}";\n')
             if reboot_time:
                 f.write(f'Unattended-Upgrade::Automatic-Reboot-Time "{reboot_time}";\n')

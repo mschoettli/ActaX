@@ -4,8 +4,8 @@ import json
 import time
 import subprocess
 
-CONFIG = "/opt/actax/data/backup_jobs.json"
-HISTORY = "/opt/actax/data/backup_history.json"
+CONFIG = "/opt/runvard/data/backup_jobs.json"
+HISTORY = "/opt/runvard/data/backup_history.json"
 
 
 def _load(path, default):

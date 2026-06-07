@@ -14,14 +14,14 @@ SECRET_KEYS = {"password", "token", "confirm_token", "secret", "key"}
 
 def data_dir() -> str:
     """
-    Return the configured ActaX data directory.
+    Return the configured runvard data directory.
 
     Returns:
     --------
         str:
             Data directory.
     """
-    return os.environ.get("ACTAX_DATA_DIR", "/opt/actax/data")
+    return os.environ.get("RUNVARD_DATA_DIR", "/opt/runvard/data")
 
 
 def audit_log() -> str:

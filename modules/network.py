@@ -133,7 +133,7 @@ def configure_ip(iface, mode="static", ip="", netmask="24", gateway="", dns="", 
                     cfg += f"    gateway {gateway}\n"
                 if dns:
                     cfg += f"    dns-nameservers {dns}\n"
-            with open(f"/etc/network/interfaces.d/actax-{iface}.cfg", "w") as f:
+            with open(f"/etc/network/interfaces.d/runvard-{iface}.cfg", "w") as f:
                 f.write(cfg)
         except OSError as e:
             return {"ok": runtime_ok, "stderr": f"Laufzeit gesetzt, Persistenz fehlgeschlagen: {e}"}

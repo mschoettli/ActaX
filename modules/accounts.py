@@ -1,11 +1,11 @@
-"""ActaX-Anwendungskonten (getrennt von OS-Benutzern): Store mit Rollen + Hash-Passwörtern."""
+"""runvard-Anwendungskonten (getrennt von OS-Benutzern): Store mit Rollen + Hash-Passwörtern."""
 import os
 import json
 import hmac
 import hashlib
 import secrets
 
-STORE = "/opt/actax/data/users.json"
+STORE = "/opt/runvard/data/users.json"
 ROLES = ("admin", "readonly")
 
 

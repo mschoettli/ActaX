@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# ActaX – Deinstallation
+# runvard – Deinstallation
 # Aufruf:  sudo bash uninstall.sh        (oder als root:  bash uninstall.sh)
 #
 set -euo pipefail
@@ -19,16 +19,16 @@ warn()  { echo -e "  ${YELLOW}⚠${NC} $*"; }
 die()   { echo -e "\n${RED}✗ $*${NC}\n" >&2; exit 1; }
 trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO)."' ERR
 
-INSTALL_DIR="/opt/actax"
-SERVICE_FILE="/etc/systemd/system/actax.service"
-SERVICE="actax"
+INSTALL_DIR="/opt/runvard"
+SERVICE_FILE="/etc/systemd/system/runvard.service"
+SERVICE="runvard"
 
 # ─────────────────────────── Optionen ───────────────────────────
 PURGE=0
 ASSUME_YES=0
 usage() {
   cat << USAGE
-ActaX – Deinstallation
+runvard – Deinstallation
 
 Verwendung:
   sudo bash uninstall.sh [Optionen]
@@ -42,7 +42,7 @@ Optionen:
 Was NICHT entfernt wird (bewusst):
   - Über apt installierte Pakete (Docker, Samba, libvirt …) – könnten anderswo
     genutzt werden.
-  - System-Änderungen, die du IN ActaX gemacht hast (Samba-/NFS-Freigaben,
+  - System-Änderungen, die du IN runvard gemacht hast (Samba-/NFS-Freigaben,
     OS-Benutzer, sudo-Regeln, Cron-Jobs). Diese bleiben bestehen.
 USAGE
 }
@@ -56,13 +56,13 @@ while [ $# -gt 0 ]; do
 done
 
 # ─────────────────────────── Banner ───────────────────────────
-echo -e "\n${CYAN}${BOLD}  ActaX – Deinstallation${NC}\n"
+echo -e "\n${CYAN}${BOLD}  runvard – Deinstallation${NC}\n"
 
 [ "$(id -u)" -eq 0 ] || die "Bitte als root ausführen:  ${BOLD}sudo bash uninstall.sh${NC}  (oder zuerst ${BOLD}su -${NC})"
 
 # Nichts installiert?
 if [ ! -e "$INSTALL_DIR" ] && [ ! -e "$SERVICE_FILE" ]; then
-  ok "ActaX ist nicht installiert – nichts zu tun."
+  ok "runvard ist nicht installiert – nichts zu tun."
   exit 0
 fi
 
@@ -103,7 +103,7 @@ if [ "$PURGE" = "1" ]; then
 elif [ -d "$INSTALL_DIR/data" ]; then
   BACKUP_DIR="${BACKUP_DIR:-/root}"
   [ -w "$BACKUP_DIR" ] || BACKUP_DIR="/tmp"
-  BACKUP="${BACKUP_DIR}/actax-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+  BACKUP="${BACKUP_DIR}/runvard-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
   if tar -czf "$BACKUP" -C "$INSTALL_DIR" data 2>/dev/null; then
     ok "Daten gesichert: ${BOLD}${BACKUP}${NC}"
   else
@@ -125,14 +125,14 @@ fi
 
 # ─────────────────────────── Abschluss ───────────────────────────
 echo
-echo -e "${GREEN}${BOLD}  ActaX wurde deinstalliert.${NC}"
+echo -e "${GREEN}${BOLD}  runvard wurde deinstalliert.${NC}"
 echo
 if [ -n "$BACKUP" ]; then
   echo -e "  💾  Daten-Sicherung: ${BOLD}${BACKUP}${NC}"
   echo -e "      ${DIM}Wiederherstellen nach einer Neuinstallation:${NC}"
-  echo -e "      ${DIM}tar -xzf ${BACKUP} -C /opt/actax && systemctl restart actax${NC}"
+  echo -e "      ${DIM}tar -xzf ${BACKUP} -C /opt/runvard && systemctl restart runvard${NC}"
   echo
 fi
-info "Nicht entfernt: apt-Pakete (Docker, Samba, libvirt …) sowie in ActaX"
+info "Nicht entfernt: apt-Pakete (Docker, Samba, libvirt …) sowie in runvard"
 info "vorgenommene System-Änderungen (Freigaben, Benutzer, sudo-Regeln, Cron)."
 echo
