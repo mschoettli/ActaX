@@ -279,6 +279,44 @@ pre.logbox{background:#0a0810;padding:16px;border-radius:11px;font-family:'JetBr
 .file-card.selected{background:rgba(122,74,255,.15);border-color:rgba(122,74,255,.4);}
 .sec-hdr{display:flex;align-items:center;margin-bottom:14px}.sec-hdr h3{font-size:13px;font-weight:600;color:var(--text);flex:1}
 .nx-card-inner{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.nx-view-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:linear-gradient(135deg,rgba(122,74,255,.12),rgba(6,182,212,.06));border:1px solid var(--border-accent);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.nx-view-intro h3{font-size:15px;font-weight:700;margin-bottom:5px;color:var(--text)}
+.nx-view-intro p{font-size:12px;color:var(--text2);line-height:1.5;max-width:720px}
+.nx-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.nx-summary-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;min-width:0}
+.nx-summary-card .k{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.nx-summary-card .v{font-size:20px;font-weight:700;color:var(--text);line-height:1.1;overflow:hidden;text-overflow:ellipsis}
+.nx-summary-card .s{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.35}
+.nx-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.nx-action-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:15px;min-width:0;transition:border-color .15s,transform .15s}
+.nx-action-card:hover{border-color:var(--border-accent);transform:translateY(-1px)}
+.nx-action-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.nx-action-title{font-size:14px;font-weight:700;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.nx-action-sub{font-size:12px;color:var(--text2);line-height:1.45;margin-bottom:12px}
+.nx-action-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.nx-kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.nx-kv div{background:rgba(255,255,255,.03);border-radius:8px;padding:8px;min-width:0}
+.nx-kv span{display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.nx-kv strong{display:block;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nx-usage{height:7px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.nx-usage>span{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#06b6d4)}
+.nx-advanced{border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02);margin-top:12px;overflow:hidden}
+.nx-advanced summary{cursor:pointer;padding:10px 12px;font-size:12px;color:var(--text2);list-style:none}
+.nx-advanced summary::-webkit-details-marker{display:none}
+.nx-advanced summary::after{content:'+';float:right;color:var(--text3)}
+.nx-advanced[open] summary::after{content:'-'}
+.nx-advanced-body{padding:0 12px 12px}
+.nx-chip-list{display:flex;gap:6px;flex-wrap:wrap}
+.nx-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:4px 9px;font-size:11px;color:var(--text2)}
+.nx-chip.good{border-color:rgba(34,197,94,.24);color:#4ade80;background:rgba(34,197,94,.08)}
+.nx-chip.warn{border-color:rgba(234,179,8,.24);color:#facc15;background:rgba(234,179,8,.08)}
+.nx-chip.bad{border-color:rgba(239,68,68,.24);color:#f87171;background:rgba(239,68,68,.08)}
+.nx-muted-table{opacity:.78}
+.nx-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.nx-choice{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;transition:all .15s}
+.nx-choice:hover,.nx-choice.selected{background:rgba(122,74,255,.1);border-color:var(--border-accent)}
+.nx-choice strong{display:block;font-size:12px;margin-bottom:3px}
+.nx-choice span{display:block;font-size:11px;color:var(--text3);line-height:1.35}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
 tr.sel-row td{background:rgba(139,92,246,.1);}
@@ -364,6 +402,24 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
 .dash-toggle.on::after{transform:translateX(14px)}
 .sortable-ghost{opacity:.3}
 .sortable-chosen{transform:scale(1.05)}
+
+@media (max-width: 760px){
+  .container{padding:16px}
+  .widgets{grid-template-columns:1fr 1fr}
+  .tiles,.dash-grid{grid-template-columns:repeat(3,1fr)}
+  .modal-overlay{padding:10px}
+  .modal{width:100vw;height:96vh;border-radius:12px}
+  .modal-head{padding:14px 16px}
+  .modal-tabs{padding:2px 16px 10px;overflow-x:auto;flex-wrap:nowrap}
+  .modal-body{padding:16px}
+  .nx-view-intro{grid-template-columns:1fr;gap:12px}
+  .nx-card-grid,.nx-summary-grid{grid-template-columns:1fr}
+  .nx-kv{grid-template-columns:1fr}
+  .files-layout{grid-template-columns:1fr}
+  .files-sidebar{border-right:0;border-bottom:.5px solid var(--border);padding:0 0 10px;margin-bottom:10px;display:grid;grid-template-columns:repeat(2,1fr)}
+  .topbar{grid-template-columns:1fr auto;padding:7px 12px}
+  .time{display:none}
+}
 
 @keyframes nexus-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes aurora-shift{0%{background-position:0% 0%}33%{background-position:100% 100%}66%{background-position:0% 100%}100%{background-position:0% 0%}}
@@ -543,6 +599,45 @@ function closeConfirm(){$('#confirm-overlay').classList.remove('open');confirmCb
 $('#confirm-ok').onclick=()=>{const cb=confirmCb;closeConfirm();if(cb)cb();};
 $('#confirm-overlay').onclick=e=>{if(e.target.id==='confirm-overlay')closeConfirm();};
 
+function statusBadge(label,tone){
+  const cls=tone==='good'?'run':tone==='bad'?'stop':'';
+  const style=tone==='warn'?' style="background:rgba(234,179,8,.1);color:#facc15;border:1px solid rgba(234,179,8,.18)"':'';
+  return `<span class="status-pill ${cls}"${style}>${esc(label)}</span>`;
+}
+function summaryCard(label,value,sub){
+  return `<div class="nx-summary-card"><div class="k">${esc(label)}</div><div class="v">${value}</div>${sub?`<div class="s">${sub}</div>`:''}</div>`;
+}
+function usageBar(percent){
+  const p=Math.max(0,Math.min(100,Number(percent)||0));
+  const color=p>90?'var(--red)':p>75?'var(--yellow)':'linear-gradient(90deg,var(--accent),#06b6d4)';
+  return `<div class="nx-usage"><span style="width:${p}%;background:${color}"></span></div>`;
+}
+function emptyState(text){
+  return `<div class="empty-state">${esc(text)}</div>`;
+}
+function advancedDetails(title,html,open){
+  return `<details class="nx-advanced" ${open?'open':''}><summary>${esc(title)}</summary><div class="nx-advanced-body">${html}</div></details>`;
+}
+function viewIntro(title,copy,actionHtml){
+  return `<div class="nx-view-intro"><div><h3>${esc(title)}</h3><p>${esc(copy)}</p></div><div class="nx-action-row">${actionHtml||''}</div></div>`;
+}
+function typedConfirm(title,msg,phrase,cb){
+  $('#form-head').innerHTML=`<span>⚠</span> ${esc(title)}`;
+  $('#form-body').innerHTML=`
+    <p style="font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:14px">${esc(msg)}</p>
+    <div class="hint" style="margin-bottom:8px">Type <span class="mono">${esc(phrase)}</span> to continue.</div>
+    <input id="typed-confirm-input" class="mono" autocomplete="off" placeholder="${esc(phrase)}">
+    <div class="form-actions">
+      <button class="btn ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn danger" id="typed-confirm-ok" disabled>Continue</button>
+    </div>`;
+  $('#form-overlay').classList.add('open');
+  const inp=$('#typed-confirm-input'),ok=$('#typed-confirm-ok');
+  inp.focus();
+  inp.oninput=()=>{ok.disabled=inp.value!==phrase;};
+  ok.onclick=()=>{closeForm();cb();};
+}
+
 // ═══ Suche im Modal (Punkt 5) ═══
 let searchEnabled=false;
 function toggleSearch(){
@@ -643,14 +738,14 @@ let _badgeTick=0;setInterval(()=>{if(++_badgeTick%5===0)loadTileBadges();},2000)
 
 // ═══ Tiles ═══
 const TILES=[
- {id:'terminal',name:'Terminal',icon:'💻',color:'#a78bfa',desc:'Bash-Shell'},
- {id:'files',name:'Dateien',icon:'🗂️',color:'#22d3ee',desc:'Explorer'},
- {id:'storage',name:'Speicher',icon:'💾',color:'#fbbf24',desc:'Disks · RAID · LUKS · ZFS/Btrfs · iSCSI · SMART · Swap · LVM',tabs:['Disks','RAID','LUKS','ZFS/Btrfs','iSCSI','SMART','Swap','LVM']},
+ {id:'terminal',name:'Terminal',icon:'💻',color:'#a78bfa',desc:'Shell'},
+ {id:'files',name:'Files',icon:'🗂️',color:'#22d3ee',desc:'Browse · Upload · Share'},
+ {id:'storage',name:'Storage',icon:'💾',color:'#fbbf24',desc:'Disks · Pools · Health',tabs:['Disks','RAID','LUKS','ZFS/Btrfs','iSCSI','SMART','Swap','LVM']},
  {id:'docker',name:'Docker',icon:'🐳',color:'#60a5fa',badge:'docker',desc:'Container · Compose',tabs:['Container','Compose','Images','Volumes']},
- {id:'vms',name:'VMs',icon:'📦',color:'#c084fc',badge:'vms',desc:'KVM/QEMU',tabs:['Maschinen','Speicher-Pools']},
- {id:'backup',name:'Backup',icon:'☁️',color:'#2dd4bf',badge:'backup',desc:'RSync · Verlauf',tabs:['Aufgaben','Verlauf']},
+ {id:'vms',name:'VMs',icon:'📦',color:'#c084fc',badge:'vms',desc:'Machines · Storage',tabs:['Machines','Storage pools']},
+ {id:'backup',name:'Backup',icon:'☁️',color:'#2dd4bf',badge:'backup',desc:'Jobs · History',tabs:['Jobs','History']},
  {id:'monitoring',name:'Monitoring',icon:'📈',color:'#9ca3af',badge:'monitoring',desc:'Logs · Alerts · Audit',tabs:['Logs','Alerts','Audit']},
- {id:'system',name:'System',icon:'🔧',color:'#9ca3af',desc:'',tabs:['Info','Updates','Pakete','Services','Netzwerk','Benutzer','Freigaben','AppArmor','Wartung','Cron','Power']},
+ {id:'system',name:'System',icon:'🔧',color:'#9ca3af',desc:'Overview · Updates · Users',tabs:['Overview','Updates','Users','Network','Services','Shares','Maintenance','Advanced','Power']},
  {id:'apps',name:'Apps',icon:'🧩',color:'#f472b6',badge:'apps',desc:''},
 ];
 TILES.forEach((t,i)=>{
@@ -1010,23 +1105,24 @@ async function renderFiles(body){
   body.innerHTML=`
   <div class="files-layout">
     <div class="files-sidebar">
-      <div class="files-sb-label">Schnellzugriff</div>
+      <div class="files-sb-label">Quick access</div>
       ${QUICKLINKS.map(q=>`<div class="files-quicklink${currentPath===q.path?' active':''}" onclick="navTo('${esc(q.path)}')">${q.label}</div>`).join('')}
       <div style="height:.5px;background:var(--border);margin:6px 8px"></div>
-      <div class="files-sb-label">Extern</div>
-      <div class="files-quicklink" onclick="mountSmbForm()">🔗 SMB verbinden</div>
-      <div class="files-quicklink" onclick="mountNfsForm()">🔗 NFS verbinden</div>
+      <div class="files-sb-label">Remote</div>
+      <div class="files-quicklink" onclick="mountSmbForm()">🔗 Connect SMB</div>
+      <div class="files-quicklink" onclick="mountNfsForm()">🔗 Connect NFS</div>
     </div>
     <div style="min-width:0;display:flex;flex-direction:column;gap:6px;padding-left:16px">
       <div class="breadcrumb">${bcHtml||'<span class="bc-seg current">/</span>'}</div>
       <div class="toolbar">
-        <button class="btn ghost sm" onclick="navTo('${esc(data.parent)}')" title="Hoch">↑ Hoch</button>
-        <button class="btn ghost sm" onclick="mkdirForm()">+ Ordner</button>
+        <button class="btn ghost sm" onclick="navTo('${esc(data.parent)}')" title="Parent folder">↑ Up</button>
+        <button class="btn ghost sm" onclick="mkdirForm()">+ New folder</button>
         <label class="btn ghost sm" style="cursor:pointer">↑ Upload<input type="file" multiple hidden onchange="uploadFiles(this)"></label>
-        <input id="files-search" class="nx-search" placeholder="Suchen…" style="flex:1;min-width:120px;padding:6px 10px;font-size:11px" oninput="fileSearch(this.value)">
+        <button class="btn ghost sm" onclick="selectedFiles.size===1?createShareLink([...selectedFiles][0]):toast('Select one file or folder first','error')">Share</button>
+        <input id="files-search" class="nx-search" placeholder="Search…" style="flex:1;min-width:120px;padding:6px 10px;font-size:11px" oninput="fileSearch(this.value)">
         <div style="margin-left:auto;display:flex;gap:5px;align-items:center">
           <select id="sort-sel" style="width:auto;padding:4px 20px 4px 8px;font-size:11px" onchange="sortBy=this.value;renderFiles($('#modal-body'))">
-            <option value="name">Name</option><option value="size">Größe</option><option value="date">Datum</option>
+            <option value="name">Name</option><option value="size">Size</option><option value="date">Date</option>
           </select>
           <button class="btn icon" onclick="viewMode=viewMode==='grid'?'list':'grid';renderFiles($('#modal-body'))" title="Ansicht" style="font-size:13px">${viewMode==='grid'?'☰':'⊞'}</button>
         </div>
@@ -1035,7 +1131,7 @@ async function renderFiles(body){
         <span id="sel-count" style="font-size:11px;color:var(--text3)"></span>
         <button class="btn ghost sm" onclick="bulkDownload()">↓ Download</button>
         <button class="btn ghost sm" onclick="bulkZip()">ZIP</button>
-        <button class="btn danger sm" onclick="bulkDelete()">Löschen</button>
+        <button class="btn danger sm" onclick="bulkDelete()">Delete</button>
         <button class="btn ghost sm" onclick="selectedFiles.clear();renderFiles($('#modal-body'))">✕</button>
       </div>
       ${viewMode==='grid'?`
@@ -2812,15 +2908,15 @@ function renderAppsView(body,categories){
 
   body.innerHTML=`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-      <input id="apps-search" class="nx-search" placeholder="App suchen…" value="${esc(appsSearch)}" style="flex:1;min-width:160px;max-width:280px" oninput="appsDoSearch(this.value)">
-      <span style="font-size:11px;color:var(--text3)">${appsCatalog.length} Apps · ${installedCount} installiert${updateCount?` · <span style="color:#fbbf24">${updateCount} Update${updateCount>1?'s':''}</span>`:''}</span>
-      <button class="btn ghost sm" style="margin-left:auto" onclick="appsCheckUpdates()" title="Nach Updates suchen">↻ Updates prüfen</button>
+      <input id="apps-search" class="nx-search" placeholder="Search apps…" value="${esc(appsSearch)}" style="flex:1;min-width:160px;max-width:280px" oninput="appsDoSearch(this.value)">
+      <span style="font-size:11px;color:var(--text3)">${appsCatalog.length} apps · ${installedCount} installed${updateCount?` · <span style="color:#fbbf24">${updateCount} update${updateCount>1?'s':''}</span>`:''}</span>
+      <button class="btn ghost sm" style="margin-left:auto" onclick="appsCheckUpdates()" title="Check for updates">↻ Check updates</button>
     </div>
     <div class="apps-cats" id="apps-cats">
       ${categories.map(c=>`<div class="apps-cat${c===appsActiveCat?' active':''}" onclick="appsSetCat('${esc(c)}')">${esc(c)}</div>`).join('')}
     </div>
     <div class="apps-grid" id="apps-grid">
-      ${filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">Keine Apps gefunden</div>'}
+      ${filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">No apps found</div>'}
     </div>`;
 }
 
@@ -2875,7 +2971,7 @@ window.appsDoSearch=v=>{appsSearch=v;const grid=$('#apps-grid');if(!grid)return;
     const qOk=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
     return catOk&&qOk;
   });
-  grid.innerHTML=filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">Keine Apps gefunden</div>';
+  grid.innerHTML=filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">No apps found</div>';
 };
 
 window.appInstallForm=async id=>{
@@ -2975,14 +3071,14 @@ window.appMenu=(ev,id,name,running,upd)=>{
   closeAppMenu();
   const items=[];
   if(running){
-    items.push(['⏸','Pausieren',()=>appAct(id,'stop')]);
-    items.push(['↻','Neustart',()=>appAct(id,'restart')]);
+    items.push(['⏸','Stop',()=>appAct(id,'stop')]);
+    items.push(['↻','Restart',()=>appAct(id,'restart')]);
   } else {
-    items.push(['▶','Fortsetzen',()=>appAct(id,'start')]);
+    items.push(['▶','Start',()=>appAct(id,'start')]);
   }
-  if(upd)items.push(['↑','Aktualisieren',()=>appAct(id,'update')]);
+  if(upd)items.push(['↑','Update',()=>appAct(id,'update')]);
   items.push('sep');
-  items.push(['🗑','Deinstallieren',()=>appUninstall(id,name),true]);
+  items.push(['🗑','Uninstall',()=>appUninstall(id,name),true]);
   const m=document.createElement('div');
   m.id='app-menu';m.className='app-menu';
   const r=ev.currentTarget.getBoundingClientRect();
@@ -3277,6 +3373,364 @@ function toggleBgPanel(){
 function closePanel(){$('#bg-panel-overlay').classList.remove('open');}
 window.copyText=text=>{navigator.clipboard?.writeText(text).then(()=>toast('Kopiert')).catch(()=>{const i=document.createElement('input');i.value=text;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();toast('Kopiert');});};
 $('#bg-panel-overlay').onclick=e=>{if(e.target.id==='bg-panel-overlay')closePanel();};
+
+// Beginner-first render overrides.
+function deviceTitle(d){return `${d.protected?'🔒 ':''}${esc(d.name)}`;}
+function devicePath(name){return name.startsWith('/dev/')?name:'/dev/'+name;}
+function cardMetric(label,value){return `<div><span>${esc(label)}</span><strong>${value}</strong></div>`;}
+function simpleTable(headers,rows){
+  return `<table class="nx-muted-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="'+headers.length+'">'+emptyState('Nothing here yet')+'</td></tr>'}</tbody></table>`;
+}
+function renderDeviceCards(devs){
+  return `<div class="nx-card-grid">${(devs||[]).map(d=>{
+    const used=d.children&&d.children.length?`${d.children.length} volume${d.children.length===1?'':'s'}`:'No volumes yet';
+    const tone=d.protected?'warn':d.mountpoint?'good':'';
+    return `<div class="nx-action-card">
+      <div class="nx-action-head"><div class="nx-action-title">${deviceTitle(d)}</div>${d.protected?statusBadge('System disk','warn'):statusBadge('Available','good')}</div>
+      <div class="nx-action-sub">${esc(d.model||d.type||'Disk')} · ${fmtBytes(d.size)} · ${used}</div>
+      <div class="nx-kv">
+        ${cardMetric('Filesystem',esc(d.fstype||'None'))}
+        ${cardMetric('Mounted at',esc(d.mountpoint||'Not mounted'))}
+      </div>
+      <div class="nx-action-row">
+        ${!d.protected&&d.type==='disk'?`<button class="btn sm" onclick="diskWizard('${esc(d.name)}')">Set up disk</button>`:''}
+        ${!d.protected&&/^(ext[234]|xfs|btrfs)$/.test(d.fstype||'')?`<button class="btn ghost sm" onclick="fsGrowForm('${esc(d.name)}','${esc(d.mountpoint||'')}','${esc(d.fstype)}')">Grow filesystem</button>`:''}
+      </div>
+      ${d.children&&d.children.length?advancedDetails('Volumes',renderDeviceCards(d.children),false):''}
+    </div>`;
+  }).join('')||emptyState('No disks detected')}</div>`;
+}
+async function renderStorage(body,tab){
+  if(tab==='Disks'||!tab){
+    const [d,mounts]=await Promise.all([api('/storage/devices'),api('/system/disks').catch(()=>[])]);
+    const mounted=(mounts||[]).filter(x=>x.total);
+    const root=mounted.find(x=>x.mountpoint==='/')||mounted[0];
+    body.innerHTML=viewIntro('Storage overview','Set up new disks from here. The system disk is locked so beginners do not accidentally erase Nexus.',`<button class="btn" onclick="renderStorage($('#modal-body'),'SMART')">Check health</button>`)
+      +`<div class="nx-summary-grid">
+        ${summaryCard('Disks',(d.devices||[]).length,'Physical devices found')}
+        ${summaryCard('Mounted volumes',mounted.length,'Usable filesystems')}
+        ${summaryCard('System disk',root?root.percent+'% used':'Unknown',root?`${fmtBytes(root.used)} / ${fmtBytes(root.total)}`:'No mount data')}
+      </div>${renderDeviceCards(d.devices)}`;
+    return;
+  }
+  if(tab==='RAID'){
+    const d=await api('/storage/raid');
+    body.innerHTML=viewIntro('Protection groups','RAID combines multiple disks for speed or protection. Use Mirror for the easiest safe setup.',`<button class="btn" onclick="raidForm()">Create RAID</button>`)
+      +`<div class="nx-card-grid">${(d.arrays||[]).map(a=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(a.name)}</div>${statusBadge('Active','good')}</div><div class="nx-action-sub">This array is available to the system.</div>${advancedDetails('Technical details',`<pre class="logbox">${esc(a.detail)}</pre>`,false)}</div>`).join('')||emptyState('No RAID groups configured')}</div>`;
+    return;
+  }
+  if(tab==='SMART'){
+    const d=await api('/storage/devices');
+    const disks=(d.devices||[]).filter(x=>x.type==='disk');
+    body.innerHTML=viewIntro('Disk health','SMART helps spot failing drives early. Some virtual or USB disks may not report health data.','')
+      +`<div class="nx-card-grid" id="smart-cards">${disks.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge('Checking','warn')}</div><div class="nx-action-sub">${fmtBytes(x.size)} · ${esc(x.model||'Disk')}</div></div>`).join('')||emptyState('No disks found')}</div>`;
+    Promise.all(disks.map(async x=>({disk:x,smart:await api('/storage/smart?device='+encodeURIComponent(x.name)).catch(e=>({available:false,error:e.message}))}))).then(rows=>{
+      const el=$('#smart-cards');if(!el)return;
+      el.innerHTML=rows.map(({disk,smart})=>`<div class="nx-action-card">
+        <div class="nx-action-head"><div class="nx-action-title">${esc(disk.name)}</div>${smart.available?statusBadge(smart.healthy?'Healthy':'Attention',smart.healthy?'good':'bad'):statusBadge('Unavailable','warn')}</div>
+        <div class="nx-kv">
+          ${cardMetric('Temperature',smart.temperature?smart.temperature+'°C':'Unknown')}
+          ${cardMetric('Power-on hours',smart.power_on_hours?smart.power_on_hours+'h':'Unknown')}
+          ${cardMetric('Size',fmtBytes(disk.size))}
+          ${cardMetric('Model',esc(smart.model||disk.model||'Disk'))}
+        </div>
+      </div>`).join('');
+    });
+    return;
+  }
+  if(tab==='Swap')return renderSwapSimple(body);
+  if(tab==='LUKS')return renderLuksSimple(body);
+  if(tab==='ZFS/Btrfs')return renderZfsBtrfsSimple(body);
+  if(tab==='iSCSI')return renderIscsiSimple(body);
+  if(tab==='LVM')return renderLvmSimple(body);
+}
+async function renderSwapSimple(body){
+  const d=await api('/storage/swap');
+  const total=(d.swaps||[]).reduce((s,x)=>s+(x.size_kb||0),0)*1024;
+  body.innerHTML=viewIntro('Memory safety buffer','Swap gives the server breathing room when RAM is full. A 2 GB swapfile is a safe default for small systems.',`<button class="btn" onclick="swapForm()">Create swapfile</button>`)
+    +`<div class="nx-summary-grid">${summaryCard('Active swap areas',(d.swaps||[]).length,'Configured now')}${summaryCard('Total swap',fmtBytes(total),'Extra memory buffer')}</div>
+    <div class="nx-card-grid">${(d.swaps||[]).map(s=>{const used=s.size_kb?Math.round(s.used_kb/s.size_kb*100):0;return `<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(s.name)}</div>${statusBadge('Active','good')}</div>${usageBar(used)}<div class="nx-kv">${cardMetric('Size',fmtBytes(s.size_kb*1024))}${cardMetric('Used',used+'%')}</div><button class="btn ghost sm" onclick="swapOff('${esc(s.name)}')">Deactivate</button></div>`}).join('')||emptyState('No swap active')}</div>`;
+}
+async function renderLvmSimple(body){
+  const d=await api('/storage/lvm');
+  if(!d.available){body.innerHTML=viewIntro('Storage pools','LVM is not installed on this server.','')+emptyState('LVM is unavailable');return;}
+  body.innerHTML=viewIntro('Storage pools','LVM groups disks into pools, then creates volumes from those pools.',`<button class="btn" onclick="vgForm()">Create pool</button>`)
+    +`<div class="nx-card-grid">${(d.vgs||[]).map(v=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(v.vg_name)}</div>${statusBadge('Pool','good')}</div><div class="nx-kv">${cardMetric('Size',esc(v.vg_size))}${cardMetric('Free',esc(v.vg_free))}${cardMetric('Disks',esc(v.pv_count))}${cardMetric('Volumes',esc(v.lv_count))}</div><button class="btn sm" onclick="lvForm('${esc(v.vg_name)}')">Create volume</button></div>`).join('')||emptyState('No storage pools yet')}</div>`
+    +advancedDetails('Volumes and physical disks',simpleTable(['Volume','Pool','Size','Path',''],(d.lvs||[]).map(l=>`<tr><td>${esc(l.lv_name)}</td><td>${esc(l.vg_name)}</td><td>${esc(l.lv_size)}</td><td class="mono">${esc(l.lv_path)}</td><td><button class="btn danger sm" onclick="lvRemove('${esc(l.lv_path)}')">Delete</button></td></tr>`).join('')),false);
+}
+async function renderLuksSimple(body){
+  const d=await api('/storage/luks');
+  if(!d.available){body.innerHTML=viewIntro('Encrypted disks','Encryption tools are not installed on this server.','')+emptyState('LUKS is unavailable');return;}
+  body.innerHTML=viewIntro('Encrypted disks','Use this when a disk should require a passphrase before it can be mounted.',`<button class="btn" onclick="luksFormatForm()">Encrypt disk</button>`)
+    +`<div class="nx-card-grid">${(d.containers||[]).map(c=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(c.device)}</div>${statusBadge(c.open?'Unlocked':'Locked',c.open?'good':'warn')}</div><div class="nx-kv">${cardMetric('Size',fmtBytes(c.size))}${cardMetric('Mount',esc(c.mountpoint||'Not mounted'))}</div><div class="nx-action-row">${c.open?`${!c.mountpoint?`<button class="btn sm" onclick="luksSetupForm('${esc(c.mapper)}')">Format and mount</button>`:''}<button class="btn ghost sm" onclick="luksClose('${esc(c.mapper)}')">Lock</button>`:`<button class="btn sm" onclick="luksOpenForm('${esc(c.device)}')">Unlock</button>`}</div></div>`).join('')||emptyState('No encrypted disks found')}</div>`;
+}
+async function renderZfsBtrfsSimple(body){
+  const [zfs,btrfs]=await Promise.all([api('/storage/zfs'),api('/storage/btrfs')]);
+  const pools=(zfs.pools&&zfs.pools.pools)||[];
+  const bfs=(btrfs.filesystems)||[];
+  body.innerHTML=viewIntro('Advanced filesystems','ZFS and Btrfs are for storage pools, snapshots, scrubs and multi-disk layouts.',`<button class="btn" onclick="zpoolForm()">Create ZFS pool</button><button class="btn ghost" onclick="btrfsForm()">Create Btrfs</button>`)
+    +`<div class="section-label">ZFS pools</div><div class="nx-card-grid">${pools.map(p=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(p.name)}</div>${statusBadge(esc(p.health),p.health==='ONLINE'?'good':'bad')}</div><div class="nx-kv">${cardMetric('Size',esc(p.size))}${cardMetric('Used',esc(p.alloc))}${cardMetric('Free',esc(p.free))}${cardMetric('Capacity',esc(p.cap))}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="zpoolScrub('${esc(p.name)}')">Scrub</button><button class="btn danger sm" onclick="zpoolDestroy('${esc(p.name)}')">Destroy</button></div></div>`).join('')||emptyState('No ZFS pools')}</div>
+    <div class="section-label">Btrfs filesystems</div><div class="nx-card-grid">${bfs.map(b=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(b.label||b.uuid)}</div>${statusBadge('Mounted','good')}</div><div class="nx-action-sub">${esc((b.devices||[]).join(', ')||'No device details')}</div><button class="btn ghost sm" onclick="btrfsScrubForm()">Run scrub</button></div>`).join('')||emptyState('No Btrfs filesystems')}</div>`;
+}
+async function renderIscsiSimple(body){
+  const d=await api('/storage/iscsi');
+  if(!d.available){body.innerHTML=viewIntro('Remote disks','iSCSI tools are not installed on this server.','')+emptyState('iSCSI is unavailable');return;}
+  body.innerHTML=viewIntro('Remote disks','Connect storage from another server. After login, the remote disk appears like a local disk.',`<button class="btn" onclick="iscsiDiscoverForm()">Find target</button>`)
+    +`<div class="nx-card-grid">${(d.sessions||[]).map(s=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(s.portal)}</div>${statusBadge('Connected','good')}</div><div class="nx-action-sub mono">${esc(s.target)}</div><button class="btn ghost sm" onclick="iscsiLogout('${esc(s.portal)}','${esc(s.target)}')">Disconnect</button></div>`).join('')||emptyState('No remote disks connected')}</div>`;
+}
+window.diskWizard=dev=>typedConfirm('Erase and set up disk',`This will create a new partition table, format ${devicePath(dev)}, and mount it. Existing data on this disk will be lost.`,dev,()=>openForm('Set up disk: '+dev,'💿',[
+  {name:'fstype',label:'Filesystem',type:'select',options:['ext4','xfs','btrfs']},
+  {name:'mountpoint',label:'Mount point',placeholder:'/mnt/data'},
+  {name:'persist',label:'Mount automatically after reboot',type:'checkbox',value:true},
+],async d=>{closeForm();toast('Setting up disk…');try{await post('/storage/partition-table',{device:dev,label:'gpt'});await post('/storage/partition',{device:dev});await post('/storage/format',{partition:dev+'1',fstype:d.fstype});await post('/storage/mount',{partition:dev+'1',mountpoint:d.mountpoint,persist:d.persist});toast('Disk ready');renderStorage($('#modal-body'),'Disks');}catch(e){toast('Error: '+e.message,'error');}}));
+window.zpoolDestroy=name=>typedConfirm('Destroy ZFS pool',`Pool "${name}" and its data will be removed permanently.`,name,async()=>{try{const r=await post('/storage/zfs/destroy',{name});if(r&&r.ok===false){toast(r.stderr||'Error','error');return;}toast('Pool destroyed');renderStorage($('#modal-body'),'ZFS/Btrfs');}catch(e){toast('Error: '+e.message,'error');}});
+window.lvRemove=lvpath=>typedConfirm('Delete logical volume',`Logical volume "${lvpath}" will be deleted permanently.`,lvpath,async()=>{try{const r=await post('/storage/lvm/lv-remove',{lv_path:lvpath});if(r&&r.ok===false){toast(r.stderr||'Error','error');return;}toast('Volume deleted');renderStorage($('#modal-body'),'LVM');}catch(e){toast('Error: '+e.message,'error');}});
+
+async function renderDocker(body,tab){
+  const av=await api('/docker/available');if(!av.available){body.innerHTML=viewIntro('Containers','Docker is not available on this server.','')+emptyState('Docker unavailable');return;}
+  if(tab==='Container'||!tab){
+    const c=await api('/docker/containers');
+    body.innerHTML=viewIntro('Container services','Start, stop and inspect services running in Docker. Advanced image and volume tools are in the other tabs.',`<button class="btn" onclick="dockerCreateForm()">Create container</button>`)
+      +`<div class="nx-summary-grid">${summaryCard('Containers',c.length,'Total')}${summaryCard('Running',c.filter(x=>x.state==='running').length,'Active now')}</div>
+      <div class="nx-card-grid">${c.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge(x.state,x.state==='running'?'good':'warn')}</div><div class="nx-action-sub mono">${esc(x.image)}</div><div class="nx-chip-list">${(x.ports||[]).slice(0,3).map(p=>`<span class="nx-chip">${esc(p)}</span>`).join('')||'<span class="nx-chip">No public ports</span>'}</div><div class="nx-action-row" style="margin-top:12px"><button class="btn sm ${x.state==='running'?'ghost':'play'}" onclick="dockerAct('${x.id}','${x.state==='running'?'restart':'start'}')">${x.state==='running'?'Restart':'Start'}</button><button class="btn ghost sm" onclick="dockerLogs('${x.id}','${esc(x.name)}')">Logs</button><button class="btn ghost sm" onclick="dockerStats('${x.id}','${esc(x.name)}')">Stats</button><button class="btn danger sm" onclick="dockerDel('${x.id}','${esc(x.name)}')">Delete</button></div></div>`).join('')||emptyState('No containers')}</div>`;
+    return;
+  }
+  return renderDockerAdvanced(body,tab);
+}
+async function renderDockerAdvanced(body,tab){
+  body.innerHTML=viewIntro(tab,'Advanced Docker tools for users who know images, volumes and Compose files.','')+'<div class="loading">Loading…</div>';
+  const oldTab=tab;
+  if(oldTab==='Compose'){
+    const p=await api('/docker/compose');
+    body.innerHTML=viewIntro('Compose projects','Advanced multi-container projects. Editing Compose files can break services.',`<button class="btn" onclick="composeForm()">Create project</button>`)
+      +simpleTable(['Project','Status','Actions'],p.map(x=>`<tr><td>${esc(x.name)}</td><td>${statusBadge(x.running?'Running':'Stopped',x.running?'good':'warn')}</td><td><button class="btn sm" onclick="composeAct('${esc(x.name)}','up')">Start</button> <button class="btn ghost sm" onclick="composeEdit('${esc(x.name)}')">Edit</button></td></tr>`).join(''));
+  } else if(oldTab==='Images'){
+    const im=await api('/docker/images');
+    body.innerHTML=viewIntro('Images','Images are templates used to create containers.',`<button class="btn" onclick="pullForm()">Pull image</button>`)
+      +simpleTable(['Tags','Size',''],im.map(x=>`<tr><td class="mono">${esc(x.tags.join(', ')||x.id.slice(0,12))}</td><td>${fmtBytes(x.size)}</td><td><button class="btn danger sm" onclick="imageDel('${x.id}','${esc(x.tags[0]||x.id)}')">Delete</button></td></tr>`).join(''));
+  } else {
+    const v=await api('/docker/volumes');
+    body.innerHTML=viewIntro('Volumes','Volumes hold persistent container data. Delete only when you know the data is no longer needed.','')
+      +simpleTable(['Name','Driver','Mount point',''],v.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.driver)}</td><td class="mono">${esc(x.mountpoint)}</td><td><button class="btn danger sm" onclick="volumeDel('${esc(x.name)}')">Delete</button></td></tr>`).join(''));
+  }
+}
+window.volumeDel=name=>typedConfirm('Delete Docker volume',`Volume "${name}" and all data inside it will be removed.`,name,async()=>{try{await post('/docker/volumes/remove',{name});toast('Volume deleted');renderDocker($('#modal-body'),'Volumes');}catch(e){toast('Error: '+e.message,'error');}});
+
+async function renderVMs(body,tab){
+  const av=await api('/vms/available');if(!av.available){body.innerHTML=viewIntro('Virtual machines','Virtualization is not available on this server.','')+emptyState('VM support unavailable');return;}
+  if(tab==='Speicher-Pools'||tab==='Storage pools')return renderVmPoolsSimple(body);
+  const v=await api('/vms/list');
+  body.innerHTML=viewIntro('Virtual machines','Create and run complete guest systems. Advanced hardware and snapshots are inside Manage.',`<button class="btn" onclick="vmCreateForm()">Create VM</button>`)
+    +`<div class="nx-card-grid">${v.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge(x.state,x.active?'good':'warn')}</div><div class="nx-kv">${cardMetric('RAM',fmtBytes(x.max_mem))}${cardMetric('CPU',x.vcpus)}${cardMetric('Console',x.active?'Available':'Start first')}${cardMetric('State',esc(x.state))}</div><div class="nx-action-row"><button class="btn sm" onclick="vmAct('${esc(x.name)}','${x.active?'reboot':'start'}')">${x.active?'Restart':'Start'}</button><button class="btn ghost sm" onclick="vmManage('${esc(x.name)}')">Manage</button><button class="btn danger sm" onclick="vmDeleteConfirm('${esc(x.name)}')">Delete</button></div></div>`).join('')||emptyState('No virtual machines')}</div>`;
+}
+async function renderVmPoolsSimple(body){
+  const d=await api('/vms/pools');
+  body.innerHTML=viewIntro('VM storage pools','Pools are folders or filesystems where VM disks are stored.',`<button class="btn" onclick="vmPoolForm()">Create pool</button>`)
+    +`<div class="nx-card-grid">${(d.pools||[]).map(p=>{const pct=p.capacity?Math.round(p.allocation/p.capacity*100):0;return `<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(p.name)}</div>${statusBadge(p.state,p.state==='active'?'good':'warn')}</div>${usageBar(pct)}<div class="nx-kv">${cardMetric('Used',fmtBytes(p.allocation))}${cardMetric('Size',fmtBytes(p.capacity))}</div><button class="btn ghost sm" onclick="vmPoolVols('${esc(p.name)}')">Volumes</button></div>`}).join('')||emptyState('No VM storage pools')}</div>`;
+}
+window.vmManage=name=>{$('#modal-body').innerHTML=`<div class="toolbar"><button class="btn ghost sm" onclick="renderVMs($('#modal-body'))">Back</button><span>${esc(name)}</span></div><div class="nx-card-grid"><div class="nx-action-card"><div class="nx-action-title">Console</div><p class="nx-action-sub">Open the VM screen.</p><button class="btn sm" onclick="vmConsole('${esc(name)}')">Open console</button></div><div class="nx-action-card"><div class="nx-action-title">Hardware</div><p class="nx-action-sub">Attach disks or network cards.</p><button class="btn sm" onclick="vmHardware('${esc(name)}')">Manage hardware</button></div><div class="nx-action-card"><div class="nx-action-title">Snapshots</div><p class="nx-action-sub">Save or restore a VM state.</p><button class="btn sm" onclick="vmSnaps('${esc(name)}')">Open snapshots</button></div><div class="nx-action-card"><div class="nx-action-title">Advanced</div><p class="nx-action-sub">Clone the VM or change the CD-ROM.</p><button class="btn ghost sm" onclick="vmClone('${esc(name)}')">Clone</button> <button class="btn ghost sm" onclick="vmCdromForm('${esc(name)}')">CD-ROM</button></div></div>`;};
+window.vmDeleteConfirm=name=>typedConfirm('Delete virtual machine',`VM "${name}" and its disk will be removed permanently.`,name,async()=>{try{await post('/vms/action',{name,action:'delete'});toast('VM deleted');renderVMs($('#modal-body'));}catch(e){toast('Error: '+e.message,'error');}});
+
+window.appInstallForm=async id=>{
+  try{
+    const a=await api('/apps/get?app_id='+encodeURIComponent(id));
+    $('#form-head').innerHTML=`<span>🧩</span> Install: ${esc(a.name)}`;
+    $('#form-body').innerHTML=`
+      <div class="nx-card-inner">
+        <div class="nx-action-title">${esc(a.name)}</div>
+        <p class="nx-action-sub">${esc(a.desc||'Install this app with the default settings.')}</p>
+        <div class="nx-kv">${cardMetric('Port',a.port||'Automatic')}${cardMetric('Data folder','/opt/nexus/data/apps/'+esc(a.id))}</div>
+      </div>
+      ${advancedDetails('Advanced compose file',`<textarea id="app-compose-content" rows="14" style="font-family:'JetBrains Mono',monospace">${esc(a.compose||'')}</textarea><div class="hint">Only edit this if you understand Docker Compose.</div>`,false)}
+      <div class="form-actions"><button class="btn ghost" onclick="closeForm()">Cancel</button><button class="btn" id="app-install-go">Install</button></div>`;
+    $('#form-overlay').classList.add('open');
+    $('#app-install-go').onclick=async()=>{
+      const content=$('#app-compose-content')?.value||a.compose||'';
+      closeForm();
+      toast('Installing '+a.name+'…');
+      try{
+        const r=await post('/apps/install',{app_id:id,content});
+        if(!r.job_id){toast('Install did not start','error');return;}
+        _activeInstalls++;updateAppsBadge();
+        const poller=setInterval(async()=>{
+          try{
+            const s=await api('/apps/install-status?job_id='+encodeURIComponent(r.job_id));
+            if(s.status==='done'||s.status==='error'){
+              clearInterval(poller);_activeInstalls=Math.max(0,_activeInstalls-1);updateAppsBadge();
+              if(s.ok){toast(a.name+' installed');dashAutoAdd(a.id,a.name,a.icon,a.port);}
+              else toast(s.step||'Install failed','error');
+              renderApps($('#modal-body'));
+            }
+          }catch(e){}
+        },2000);
+      }catch(e){toast('Error: '+e.message,'error');}
+    };
+  }catch(e){toast('Error: '+e.message,'error');}
+};
+window.appUninstall=(id,name)=>typedConfirm('Uninstall app',`"${name}" will be stopped and removed. Data in /opt/nexus/data/apps/${id}/ stays on disk.`,name,async()=>{
+  toast('Uninstalling…');
+  try{await post('/apps/action',{app_id:id,action:'down'});toast(name+' uninstalled');renderApps($('#modal-body'));}catch(e){toast('Error: '+e.message,'error');}
+});
+function appCardHtml(a){
+  const tint=appTint(a.category);
+  let actions,pill='';
+  if(!a.installed){
+    actions=`<button class="app-install-btn" onclick="appInstallForm('${a.id}')">Install</button>`;
+  } else {
+    pill=a.update_available
+      ? `<span class="app-status-pill upd" title="Update available">Update</span>`
+      : a.running
+        ? `<span class="app-status-pill run" title="Running"><span class="sd"></span>Running</span>`
+        : `<span class="app-status-pill paused" title="Stopped"><span class="sd"></span>Stopped</span>`;
+    const primary=a.running
+      ? `<button class="btn sm success" style="flex:1" onclick="appOpen('${a.id}',${a.port})">Open</button>`
+      : `<button class="btn sm" style="flex:1" onclick="appAct('${a.id}','start')">Start</button>`;
+    actions=`<div style="display:flex;gap:6px">${primary}<button class="btn icon" title="Actions" onclick="appMenu(event,'${a.id}','${esc(a.name)}',${a.running?1:0},${a.update_available?1:0})" style="width:30px;height:30px;font-size:15px">⋯</button></div>`;
+  }
+  return `<div class="app-card">
+    ${pill}
+    <div class="app-card-head">
+      <div class="app-icon-wrap" style="background:${appHexA(tint,.12)};border-color:${appHexA(tint,.25)}">
+        <img src="${esc(a.icon)}" alt="${esc(a.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="app-icon-fallback" style="display:none;background:${appHexA(tint,.18)};color:${tint}">${esc(a.name[0])}</div>
+      </div>
+      <div class="app-card-info"${a.installed?' style="padding-right:62px"':''}>
+        <div class="app-card-name">${esc(a.name)}</div>
+        <div class="app-card-meta">:${a.port||'—'}</div>
+      </div>
+    </div>
+    <div class="app-card-desc">${esc(a.desc)}</div>
+    <div class="app-card-actions">${actions}</div>
+  </div>`;
+}
+
+async function renderBackup(body,tab){
+  if(tab==='Verlauf'||tab==='History'){
+    const h=await api('/backup/history');
+    body.innerHTML=viewIntro('Backup history','Recent backup results and failures.','')+simpleTable(['Job','Time','Duration','Status'],h.map(x=>`<tr><td>${esc(x.name)}</td><td>${new Date(x.time*1000).toLocaleString('de-DE')}</td><td>${x.duration}s</td><td>${statusBadge(x.success?'OK':'Failed',x.success?'good':'bad')}</td></tr>`).join(''));
+    return;
+  }
+  const [j,h]=await Promise.all([api('/backup/jobs'),api('/backup/history').catch(()=>[])]);
+  body.innerHTML=viewIntro('Backups','Protect important folders by copying them on a schedule.',`<button class="btn" onclick="backupForm()">Create backup</button>`)
+    +`<div class="nx-summary-grid">${summaryCard('Backup jobs',j.length,'Configured')}${summaryCard('Last result',h[0]?(h[0].success?'OK':'Failed'):'Never',h[0]?new Date(h[0].time*1000).toLocaleString('de-DE'):'No backup has run')}</div>
+    <div class="nx-card-grid">${j.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge(x.schedule==='manual'?'Manual':x.schedule,'good')}</div><div class="nx-kv">${cardMetric('From',esc(x.source))}${cardMetric('To',esc(x.dest))}</div><button class="btn sm" onclick="runBackup(${x.id})">Run now</button></div>`).join('')||emptyState('No backup jobs yet')}</div>`;
+}
+
+async function renderMonitoring(body,tab){
+  if(tab==='Logs'||!tab){
+    body.style.overflow='auto';
+    body.innerHTML=viewIntro('Logs','Start with errors and warnings. Use advanced filters when you need a specific service or text.',`<button class="btn" onclick="loadLog()">Refresh</button>`)
+      +advancedDetails('Advanced filters',`<div class="toolbar"><select id="log-src"><option value="syslog">Syslog</option><option value="auth">Auth</option><option value="kernel">Kernel</option><option value="boot">Boot</option></select><select id="log-prio"><option value="warning">Warnings and errors</option><option value="err">Errors only</option><option value="">Everything</option><option value="info">Info+</option></select><input id="log-unit" class="nx-search" placeholder="Service, e.g. nexus"><input id="log-grep" class="nx-search" placeholder="Text search"><select id="log-lines"><option value="200">200 lines</option><option value="500">500 lines</option><option value="1000">1000 lines</option></select></div>`,true)
+      +`<pre class="logbox" id="log-out" style="max-height:430px">Loading…</pre>`;
+    loadLog();return;
+  }
+  if(tab==='Audit'){
+    const a=await api('/monitoring/audit?lines=300');
+    body.innerHTML=viewIntro('Audit','Actions performed in Nexus. Failed actions are highlighted.','')
+      +simpleTable(['Time','User','Action','Status','Remote'],(a.events||[]).map(x=>`<tr><td>${new Date(x.time*1000).toLocaleString('de-DE')}</td><td>${esc(x.user)}</td><td class="mono">${esc(x.action)}</td><td>${statusBadge(x.ok?'OK':'Failed',x.ok?'good':'bad')}</td><td class="mono">${esc(x.remote||'-')}</td></tr>`).join(''));
+    return;
+  }
+  const alerts=await api('/monitoring/alerts/history');
+  body.innerHTML=viewIntro('Alerts','Important events that need attention.','')+`<div class="nx-card-grid">${alerts.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${new Date(x.time*1000).toLocaleString('de-DE')}</div>${statusBadge(x.resolved?'Resolved':'Attention',x.resolved?'good':'bad')}</div><div class="nx-action-sub">${esc(x.message)}</div><span class="nx-chip">${esc(x.channel)}</span></div>`).join('')||emptyState('No alerts')}</div>`;
+}
+
+async function renderNetwork(body,tab){
+  const sub=(tab==='Firewall')?'Firewall':'Interfaces';
+  const tabs=`<div class="modal-tabs" style="padding:0 0 14px">${['Interfaces','Firewall'].map(t=>`<div class="modal-tab${t===sub?' active':''}" onclick="renderNetwork($('#modal-body'),'${t}')">${t}</div>`).join('')}</div>`;
+  if(sub==='Firewall'){
+    const f=await api('/network/firewall/rules');
+    body.innerHTML=tabs+viewIntro('Firewall','Allow or block network access. Keep rules simple unless you know exactly what a service needs.',`<button class="btn" onclick="fwAddForm()">Add rule</button>`)
+      +`<div class="nx-summary-grid">${summaryCard('Firewall',f.active?'Active':'Inactive',f.backend||'Unknown backend')}${summaryCard('Rules',(f.rules||[]).length,'Configured')}</div>`
+      +simpleTable(['No.','To','Action','From',''],(f.rules||[]).map(r=>`<tr><td>${r.num}</td><td class="mono">${esc(r.to)}</td><td>${statusBadge(esc(r.action),/ALLOW/i.test(r.action)?'good':'bad')}</td><td>${esc(r.from)}</td><td><button class="btn danger sm" onclick="fwDelete(${r.num})">Delete</button></td></tr>`).join(''));
+    return;
+  }
+  const ifs=await api('/network/interfaces');
+  body.innerHTML=tabs+viewIntro('Network interfaces','Most servers only need one connected interface with an IP address. Advanced networking is below.',`<button class="btn ghost" onclick="bridgeForm()">Advanced: bridge</button><button class="btn ghost" onclick="vlanForm()">VLAN</button>`)
+    +`<div class="nx-card-grid">${ifs.map(i=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(i.name)}</div>${statusBadge(i.up?'Connected':'Down',i.up?'good':'bad')}</div><div class="nx-kv">${cardMetric('IP',esc(i.ipv4||'No IP'))}${cardMetric('Speed',i.speed?i.speed+' Mbit':'Unknown')}${cardMetric('MAC',esc(i.mac||'-'))}${cardMetric('Type',i.is_bond?'Bond':'Interface')}</div><button class="btn ghost sm" onclick="ipConfigForm('${esc(i.name)}','${i.ipv4||''}')">Configure IP</button></div>`).join('')}</div>`;
+}
+window.fwDelete=num=>typedConfirm('Delete firewall rule',`Firewall rule ${num} will be removed.`,String(num),async()=>{try{await post('/network/firewall/remove',{num});toast('Rule removed');renderNetwork($('#modal-body'),'Firewall');}catch(e){toast('Error: '+e.message,'error');}});
+
+async function renderSecurity(body,tab){
+  if(tab==='Gruppen'){
+    const [g,u]=await Promise.all([api('/security/groups'),api('/security/users').catch(()=>[])]);
+    const userNames=encodeURIComponent(JSON.stringify((u||[]).map(x=>x.name)));
+    body.innerHTML=viewIntro('Groups','Groups control access for multiple users.','')+simpleTable(['Group','GID','Members',''],g.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.gid}</td><td>${esc((x.members||[]).join(', ')||'-')}</td><td><button class="btn ghost sm" onclick="addMemberForm('${esc(x.name)}','${userNames}')">Add member</button></td></tr>`).join(''));return;
+  }
+  if(tab==='SSL'){
+    const c=await api('/security/certs');
+    body.innerHTML=viewIntro('Certificates','Create local certificates for services that need HTTPS.',`<button class="btn" onclick="certForm()">Create certificate</button>`)
+      +advancedDetails('Certificate details',c.map(x=>`<pre class="logbox">${esc(x.file)}\n${esc(x.info)}</pre>`).join('')||emptyState('No certificates'),true);return;
+  }
+  const u=await api('/security/users');let smbSet=new Set();try{const smb=await api('/security/smb-users');smbSet=new Set(smb.users||[]);}catch(e){}
+  body.innerHTML=viewIntro('Users','Manage Linux users, passwords, file sharing access and admin rights.',`<button class="btn" onclick="userForm()">Create user</button>`)
+    +`<div class="nx-card-grid">${u.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge(x.uid<1000?'System':'User',x.uid<1000?'warn':'good')}</div><div class="nx-kv">${cardMetric('Home',esc(x.home))}${cardMetric('Groups',esc((x.groups||[]).slice(0,3).join(', ')||'-'))}${cardMetric('Samba',smbSet.has(x.name)?'Enabled':'Off')}${cardMetric('UID',x.uid)}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="passForm('${esc(x.name)}')">Password</button><button class="btn ghost sm" onclick="smbPassForm('${esc(x.name)}')">File sharing</button><button class="btn ghost sm" onclick="userSecForm('${esc(x.name)}')">Admin rights</button><button class="btn ghost sm" onclick="sshKeysForm('${esc(x.name)}')">SSH keys</button></div></div>`).join('')}</div>`;
+}
+
+async function renderSystem(body,tab){
+  if(tab==='Info'||tab==='Overview'||!tab){
+    const [i,u,alerts]=await Promise.all([api('/system/info'),api('/sysmgr/updates').catch(()=>({updates:0})),api('/monitoring/alerts/history').catch(()=>[])]);
+    const activeAlerts=(alerts||[]).filter(x=>!x.resolved).length;
+    body.innerHTML=viewIntro('System overview','This is the safe place to check health before changing settings.',`<button class="btn" onclick="renderSystem($('#modal-body'),'Updates')">Check updates</button>`)
+      +`<div class="nx-summary-grid">${summaryCard('Server',esc(i.hostname),esc(i.os))}${summaryCard('Updates',u.updates||0,(u.updates||0)?'Attention needed':'System current')}${summaryCard('Alerts',activeAlerts,activeAlerts?'Review monitoring':'No active alerts')}${summaryCard('Uptime',fmtUptime(i.uptime_seconds),'Running time')}</div>
+      <div class="nx-card-grid"><div class="nx-action-card"><div class="nx-action-title">Hardware</div><div class="nx-kv">${cardMetric('CPU',esc(i.cpu_model))}${cardMetric('Kernel',esc(i.kernel))}${cardMetric('Architecture',esc(i.arch))}${cardMetric('OS',esc(i.os))}</div></div></div>`;
+    return;
+  }
+  if(tab==='Netzwerk'||tab==='Network')return renderNetwork(body,'Interfaces');
+  if(tab==='Benutzer'||tab==='Users')return renderSecurity(body,'Benutzer');
+  if(tab==='Services')return renderServicesSimple(body);
+  if(tab==='Freigaben'||tab==='Shares')return renderSharesAll(body);
+  if(tab==='Wartung'||tab==='Maintenance')return renderMaintenance(body);
+  if(tab==='Advanced'){
+    body.innerHTML=viewIntro('Advanced system tools','These tools can change low-level server behavior. Use them only when needed.','')
+      +`<div class="nx-card-grid">
+        <div class="nx-action-card"><div class="nx-action-title">Packages</div><p class="nx-action-sub">Search, install or remove apt packages.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'Pakete')">Open packages</button></div>
+        <div class="nx-action-card"><div class="nx-action-title">AppArmor</div><p class="nx-action-sub">Inspect or change application security profiles.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'AppArmor')">Open AppArmor</button></div>
+        <div class="nx-action-card"><div class="nx-action-title">Cron</div><p class="nx-action-sub">Create scheduled command jobs.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'Cron')">Open Cron</button></div>
+      </div>`;
+    return;
+  }
+  if(tab==='Cron'){
+    const c=await api('/sysmgr/cron');
+    body.innerHTML=viewIntro('Cron jobs','Run commands automatically on a schedule. Use this only for commands you already trust.',`<button class="btn" onclick="cronForm()">Create job</button>`)
+      +simpleTable(['Schedule','Command'],c.map(x=>`<tr><td class="mono">${esc(x.schedule)}</td><td class="mono">${esc(x.command)}</td></tr>`).join(''));
+    return;
+  }
+  if(['Pakete','AppArmor','Cron'].includes(tab)){
+    const original={Pakete:renderPackages,AppArmor:renderAppArmor,Cron:null,Power:null}[tab];
+    body.innerHTML=viewIntro('Advanced system tools','These tools can change low-level server behavior. Use them only when needed.','')+'<div id="advanced-system-body"></div>';
+    const target=$('#advanced-system-body');
+    if(original)return original(target);
+  }
+  return renderSystemOriginalFallback(body,tab);
+}
+async function renderServicesSimple(body){
+  const s=await api('/services/list');
+  body.innerHTML=viewIntro('Services','Start, stop or inspect system services. Changing core services can disconnect Nexus.', '')
+    +`<div class="nx-card-grid">${s.slice(0,80).map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title mono">${esc(x.name)}</div>${statusBadge(x.active,x.active==='active'?'good':'warn')}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="svcAct('${esc(x.name)}','${x.active==='active'?'restart':'start'}')">${x.active==='active'?'Restart':'Start'}</button><button class="btn ghost sm" onclick="svcLogs('${esc(x.name)}')">Logs</button></div></div>`).join('')}</div>`;
+}
+const renderSystemOriginalFallback=async(body,tab)=>{
+  if(tab==='Updates'){
+    body.innerHTML='<div class="loading">Checking updates…</div>';
+    const u=await api('/sysmgr/updates');
+    body.innerHTML=viewIntro('Updates','Install security and package updates from here.',u.updates>0?`<button class="btn" id="upd-go" onclick="updatesInstall()">Install updates</button>`:'')
+      +`<div class="nx-summary-grid">${summaryCard('Available updates',u.updates,u.updates?'Install when you can reboot if needed':'System current')}</div><pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
+  } else if(tab==='Freigaben'||tab==='Shares')return renderSharesAll(body);
+  else if(tab==='Wartung'||tab==='Maintenance')return renderMaintenance(body);
+  else if(tab==='Power'){
+    body.innerHTML=viewIntro('Power','Restart or shut down the server.', '')+`<div class="nx-card-grid"><div class="nx-action-card"><div class="nx-action-title">Restart</div><p class="nx-action-sub">Reboot the server now or after a delay.</p><button class="btn ghost" onclick="powerForm('reboot')">Restart</button></div><div class="nx-action-card"><div class="nx-action-title">Shut down</div><p class="nx-action-sub">Power off the server.</p><button class="btn danger" onclick="powerForm('shutdown')">Shut down</button></div></div>`;
+  } else body.innerHTML=viewIntro(tab||'System','This advanced section is still available.','')+emptyState('Open another tab to continue');
+};
+function renderDashboard(){
+  const grid=$('#dash-grid');const section=$('#dash-section');if(!grid||!section)return;
+  section.style.display='block';
+  if(!dashTiles.length){grid.innerHTML=`<div class="nx-view-intro" style="grid-column:1/-1"><div><h3>Ready for apps</h3><p>Install apps or add custom shortcuts and they will appear here.</p></div><button class="btn" onclick="openTileById('apps')">Open apps</button></div>`;return;}
+  const host=location.hostname;
+  grid.innerHTML=dashTiles.map(t=>{
+    const isApp=t.type==='app';const statusCls=isApp?(t.running?'run':'stop'):'ext';const port=t.port||0;const url=isApp?`${host}:${port}`:(t.url||'').replace(/^https?:\/\//,'');const iconHtml=t.icon&&t.icon.length<=2?t.icon:`<img src="${esc(t.icon||'')}" onerror="this.parentElement.textContent='${esc((t.name||'?')[0])}'">`;
+    return `<div class="dash-tile" data-id="${esc(t.id)}" onclick="dashClick(event,'${esc(t.id)}')" oncontextmenu="dashCtx(event,'${esc(t.id)}')"><div class="dash-tile-body${t.show_url?' has-url':''}"><div class="dash-dots" onclick="event.stopPropagation();dashCtx(event,'${esc(t.id)}')">•••</div><div class="dash-status ${statusCls}"></div><div class="dash-tile-icon">${iconHtml}</div><div class="dash-tile-name">${esc(t.name)}</div></div>${t.show_url?`<div class="dash-tile-footer"><div class="dash-tile-url">${esc(url)}</div></div>`:''}</div>`;
+  }).join('');
+  if(typeof Sortable!=='undefined'){Sortable.create(grid,{animation:150,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:()=>{const order=[...grid.querySelectorAll('.dash-tile')].map(el=>el.dataset.id);post('/dashboard/order',{order:JSON.stringify(order)});}});}
+}
 
 // ═══ Lösch-X für Suchleisten (generisch, auch für dynamisch gerenderte Felder) ═══
 function nxAddClear(inp){
