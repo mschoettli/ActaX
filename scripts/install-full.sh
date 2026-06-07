@@ -55,6 +55,87 @@ run_spin() {
   echo; tail -n 8 "$SPIN_LOG" 2>/dev/null | sed 's/^/      /'; return 1
 }
 
+enable_extra_repos() {
+  local os_id=""
+  local codename=""
+  os_id="$(. /etc/os-release 2>/dev/null && echo "${ID:-}")"
+  codename="$(. /etc/os-release 2>/dev/null && echo "${VERSION_CODENAME:-}")"
+  [ -n "$codename" ] || return 1
+
+  case "$os_id" in
+    debian)
+      if [ -f /etc/apt/sources.list ]; then
+        sed -i -E 's/^(deb .* main)( contrib)?( non-free)?( non-free-firmware)?/\1 contrib non-free non-free-firmware/' /etc/apt/sources.list
+      fi
+
+      for f in /etc/apt/sources.list.d/*.sources; do
+        [ -f "$f" ] || continue
+        sed -i -E 's/^Components: .*/Components: main contrib non-free non-free-firmware/' "$f"
+      done
+
+      for f in /etc/apt/sources.list.d/*.list; do
+        [ -f "$f" ] || continue
+        sed -i -E 's/^(deb .* main)( contrib)?( non-free)?( non-free-firmware)?/\1 contrib non-free non-free-firmware/' "$f"
+      done
+      ;;
+    ubuntu)
+      if [ -f /etc/apt/sources.list ]; then
+        sed -i -E 's/^(deb .* main)( restricted)?( universe)?( multiverse)?/\1 restricted universe multiverse/' /etc/apt/sources.list
+      fi
+
+      for f in /etc/apt/sources.list.d/*.sources; do
+        [ -f "$f" ] || continue
+        sed -i -E 's/^Components: .*/Components: main restricted universe multiverse/' "$f"
+      done
+
+      for f in /etc/apt/sources.list.d/*.list; do
+        [ -f "$f" ] || continue
+        sed -i -E 's/^(deb .* main)( restricted)?( universe)?( multiverse)?/\1 restricted universe multiverse/' "$f"
+      done
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+install_apt_packages() {
+  local packages=("$@")
+  local failed=()
+  local total=${#packages[@]}
+  local idx=0
+
+  info "Installiere ${total} Pakete:"
+  for p in "${packages[@]}"; do
+    idx=$((idx+1))
+    progress_bar "$idx" "$total" "$p"
+    apt-get install -y -qq "$p" >>"$SPIN_LOG" 2>&1 || failed+=("$p")
+  done
+  progress_bar "$total" "$total" "fertig"; echo
+
+  if [ "${#failed[@]}" -eq 0 ]; then
+    ok "Pakete installiert."
+    return 0
+  fi
+
+  warn "Nicht installierbar beim ersten Versuch: ${failed[*]}"
+  info "Aktiviere zusaetzliche Paketquellen-Komponenten und versuche erneut ..."
+  enable_extra_repos || warn "Konnte Paketquellen-Komponenten nicht automatisch erweitern."
+  run_spin "Paketquellen erneut aktualisieren ..." apt-get update -qq \
+    || die "Paketquellen konnten nach Repository-Anpassung nicht aktualisiert werden."
+
+  local retry_failed=()
+  for p in "${failed[@]}"; do
+    apt-get install -y -qq "$p" >>"$SPIN_LOG" 2>&1 || retry_failed+=("$p")
+  done
+
+  if [ "${#retry_failed[@]}" -gt 0 ]; then
+    die "Diese Pakete konnten nicht installiert werden: ${retry_failed[*]}"
+  fi
+
+  ok "Alle Pakete installiert."
+}
+
 # Bei jedem Fehler eine hilfreiche Meldung statt eines kryptischen Abbruchs
 trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO). Prüfe die Ausgabe oben.\n  Logs nach der Installation:  journalctl -u nexus -e"' ERR
 
@@ -199,21 +280,7 @@ info "Paketquellen aktualisieren …"
 run_spin "Paketquellen aktualisieren …" apt-get update -qq \
   || warn "apt-get update meldete Warnungen – fahre fort."
 
-info "Installiere ${#PKGS[@]} Pakete:"
-# Pakete einzeln tolerant installieren – mit Fortschrittsbalken
-FAILED=()
-TOTAL_PKGS=${#PKGS[@]}
-IDX=0
-for p in "${PKGS[@]}"; do
-  IDX=$((IDX+1))
-  progress_bar "$IDX" "$TOTAL_PKGS" "$p"
-  apt-get install -y -qq "$p" >>"$SPIN_LOG" 2>&1 || FAILED+=("$p")
-done
-progress_bar "$TOTAL_PKGS" "$TOTAL_PKGS" "fertig"; echo
-if [ "${#FAILED[@]}" -gt 0 ]; then
-  warn "Nicht installierbar (erscheinen in Nexus als nicht verfügbar): ${FAILED[*]}"
-fi
-ok "Pakete verarbeitet."
+install_apt_packages "${PKGS[@]}"
 
 # Docker Compose v2 sicherstellen – Nexus' Apps-Funktion braucht "docker compose".
 # Debians docker.io bringt das Plugin NICHT mit.
@@ -264,22 +331,29 @@ if [ ! -x "$INSTALL_DIR/venv/bin/python" ]; then
     || die "Konnte keine Python-Umgebung anlegen (ist python3-venv installiert?)."
 fi
 if [ -d "$INSTALL_DIR/wheels" ] && [ -n "$(ls -A "$INSTALL_DIR/wheels" 2>/dev/null)" ]; then
-  # Offline-Modus: mitgelieferte Wheels, kein Internet nötig
-  info "Offline-Wheels gefunden – installiere ohne Internet."
+  # Offline-Wheels zuerst nutzen, danach fehlende native Pakete online nachziehen.
+  info "Offline-Wheels gefunden – installiere Basis-Pakete lokal."
   run_spin "Python-Pakete installieren (offline) …" \
     "$PIP" install -q --no-index --find-links "$INSTALL_DIR/wheels" -r "$INSTALL_DIR/requirements.txt" \
     || die "Offline-Installation der Python-Pakete fehlgeschlagen (siehe Ausgabe oben)."
-  [ "$WANT_KVM" = "1" ] && warn "libvirt-python wird offline nicht installiert – VM-Funktionen erst mit Internet verfügbar."
+  run_spin "pip aktualisieren ..." "$PIP" install -q --upgrade pip \
+    || die "pip konnte nicht aktualisiert werden."
+  if [ "$WANT_KVM" = "1" ]; then
+    run_spin "libvirt-Python-Anbindung installieren ..." \
+      "$PIP" install -q libvirt-python \
+      || die "libvirt-python konnte nicht installiert werden."
+  fi
 else
   # Online-Modus: von PyPI
-  run_spin "pip aktualisieren …" "$PIP" install -q --upgrade pip || warn "pip-Update übersprungen."
+  run_spin "pip aktualisieren …" "$PIP" install -q --upgrade pip \
+    || die "pip konnte nicht aktualisiert werden."
   run_spin "Python-Pakete installieren (kann etwas dauern) …" \
     "$PIP" install -q -r "$INSTALL_DIR/requirements.txt" \
     || die "Python-Pakete konnten nicht installiert werden (siehe Ausgabe oben)."
   if [ "$WANT_KVM" = "1" ]; then
     run_spin "libvirt-Python-Anbindung installieren …" \
       "$PIP" install -q libvirt-python \
-      || warn "libvirt-python konnte nicht installiert werden – VM-Funktionen ggf. eingeschränkt."
+      || die "libvirt-python konnte nicht installiert werden."
   fi
 fi
 ok "Python-Umgebung bereit."
@@ -342,8 +416,8 @@ URL="http://${LAN_IP}:${PORT}"
 
 case "$HTTP" in
   200|302|307) ok "Nexus läuft und ist erreichbar." ;;
-  000) warn "Dienst antwortet noch nicht. Status:  journalctl -u nexus -e" ;;
-  *)   warn "Unerwartete Antwort (HTTP ${HTTP}) – meist trotzdem ok. Status:  journalctl -u nexus -e" ;;
+  000) die "Dienst antwortet nicht. Status:  journalctl -u nexus -e" ;;
+  *)   die "Unerwartete Antwort (HTTP ${HTTP}). Status:  journalctl -u nexus -e" ;;
 esac
 
 # ─────────────────────────── Abschluss ───────────────────────────

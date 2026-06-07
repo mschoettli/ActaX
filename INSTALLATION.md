@@ -13,12 +13,11 @@ If the password is left empty, the installer generates a random password and pri
 The selected username, password, and port are stored in `/opt/nexus/data/nexus.env` and loaded by the systemd service.
 After installation, Nexus is available at the address printed by the installer; the default port is `8080`.
 
-## Offline Installation
+## Bundled Wheels
 
-If the bundled `wheels/` directory is present, `install.sh` installs Python packages from those local wheel files without internet access.
+If the bundled `wheels/` directory is present, the installer uses those local wheel files first to speed up Python dependency installation.
+The installer still uses the internet when required to update `pip`, install native Python bindings, and fetch system packages that are not available locally.
 The bundled wheels are intended for Python 3.13 on x86_64 Linux.
-For an online installation, the `wheels/` directory can be removed before running the installer.
-Virtual machine support may still require internet access for the Python bindings if they are not available from the bundled files.
 
 ## Service Management
 
