@@ -1,16 +1,13 @@
 # Installation
 
-Nexus is installed on a Debian or Ubuntu server with the included `install.sh` script.
-Copy the project directory to the target server, enter the directory, and run the installer with root privileges.
+Nexus can be installed on a Debian or Ubuntu server with one command.
+Run the installer with root privileges on the target server.
 
 ```bash
-scp -r nexus/ user@server:/tmp/
-ssh user@server
-cd /tmp/nexus
-sudo bash install.sh
+curl -fsSL https://raw.githubusercontent.com/mschoettli/Nexus/main/install.sh | sudo bash
 ```
 
-The installer installs required system packages, creates the Python virtual environment, installs Python dependencies, writes the systemd service, and starts Nexus.
+The installer downloads the current Nexus release when needed, installs required system packages, creates the Python virtual environment, installs Python dependencies, writes the systemd service, and starts Nexus.
 It asks for the admin username, admin password, and web port.
 If the password is left empty, the installer generates a random password and prints it at the end.
 The selected username, password, and port are stored in `/opt/nexus/data/nexus.env` and loaded by the systemd service.
