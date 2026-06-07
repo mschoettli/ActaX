@@ -74,16 +74,36 @@ def _partition_name(device: str, number: int = 1):
     return f"{name}{suffix}"
 
 
-def _settle_device(device: str, timeout: int = 10):
+def _settle_device(device: str, wait_for: str | None = None, timeout: int = 10):
     """Ask the kernel to refresh partition metadata and wait for a device."""
     _run(["partprobe", device])
     _run(["udevadm", "settle"])
+    target = wait_for or device
     deadline = time.time() + timeout
     while time.time() < deadline:
-        if os.path.exists(device):
+        if os.path.exists(target):
             return True
         time.sleep(0.2)
-    return os.path.exists(device)
+    return os.path.exists(target)
+
+
+def _first_partition_name(device: str):
+    """Return the first child partition name reported by lsblk."""
+    dev = f"/dev/{device}" if not device.startswith("/dev/") else device
+    r = _run(["lsblk", "-J", "-o", "NAME,TYPE", dev])
+    if not r["ok"]:
+        return ""
+    try:
+        data = json.loads(r["stdout"])
+    except json.JSONDecodeError:
+        return ""
+    blockdevices = data.get("blockdevices", [])
+    if not blockdevices:
+        return ""
+    for child in blockdevices[0].get("children", []):
+        if child.get("type") == "part" and child.get("name"):
+            return child["name"]
+    return ""
 
 
 def smart_data(device: str):
@@ -123,21 +143,29 @@ def _guard(device: str):
 def create_partition_table(device: str, label: str = "gpt"):
     _guard(device)
     dev = f"/dev/{device}" if not device.startswith("/dev/") else device
+    _run(["wipefs", "-a", dev])
     res = _run(["parted", "-s", dev, "mklabel", label])
     if res["ok"]:
         _settle_device(dev)
     return res
 
 
-def create_partition(device: str, start="0%", end="100%"):
+def create_partition(device: str, start="1MiB", end="100%"):
     _guard(device)
     dev = f"/dev/{device}" if not device.startswith("/dev/") else device
-    res = _run(["parted", "-s", dev, "mkpart", "primary", start, end])
+    res = _run(["parted", "-s", "-a", "optimal", dev, "mkpart",
+                "primary", start, end])
     part_name = _partition_name(dev)
     part_path = f"/dev/{part_name}"
-    if res["ok"] and not _settle_device(part_path):
-        res["ok"] = False
-        res["stderr"] = f"Partition {part_path} was not detected"
+    if res["ok"]:
+        _settle_device(dev, part_path)
+        detected = _first_partition_name(dev)
+        if detected:
+            part_name = detected
+            part_path = f"/dev/{part_name}"
+        if not os.path.exists(part_path):
+            res["ok"] = False
+            res["stderr"] = f"Partition {part_path} was not detected"
     res["partition"] = part_name
     return res
 
@@ -145,6 +173,9 @@ def create_partition(device: str, start="0%", end="100%"):
 def format_partition(partition: str, fstype: str = "ext4"):
     _guard(partition)
     dev = f"/dev/{partition}" if not partition.startswith("/dev/") else partition
+    if not os.path.exists(dev):
+        return {"ok": False, "stderr": f"{dev} does not exist"}
+    _run(["wipefs", "-a", dev])
     mkfs_map = {
         "ext4": ["mkfs.ext4", "-F", dev],
         "xfs": ["mkfs.xfs", "-f", dev],
@@ -159,6 +190,10 @@ def mount_device(partition: str, mountpoint: str, persist=False):
     _guard(partition)
     dev = f"/dev/{partition}" if not partition.startswith("/dev/") else partition
     import os
+    if not os.path.exists(dev):
+        return {"ok": False, "stderr": f"{dev} does not exist"}
+    if not mountpoint or not mountpoint.startswith("/"):
+        return {"ok": False, "stderr": "Mountpoint must be an absolute path"}
     os.makedirs(mountpoint, exist_ok=True)
     res = _run(["mount", dev, mountpoint])
     if res["ok"] and persist:
