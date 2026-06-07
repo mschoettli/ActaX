@@ -1,5 +1,6 @@
 """Docker: Container, Images, Volumes, Compose - volle Verwaltung."""
 import os
+import shutil
 import subprocess
 
 try:
@@ -294,3 +295,36 @@ def compose_action(name, action):
     r = subprocess.run(cmd_map[action], cwd=path, capture_output=True,
                        text=True, timeout=300)
     return {"ok": r.returncode == 0, "output": r.stdout + r.stderr}
+
+
+def remove_compose_project(name):
+    """
+    Stop and remove a saved Compose project.
+
+    Args:
+    -----
+        name (str):
+            Compose project directory name.
+
+    Returns:
+    --------
+        dict[str, bool]:
+            Contains the deletion result.
+
+    Raises:
+    -------
+        ValueError:
+            Raised when the project name or path is unsafe.
+    """
+    if not name or name in (".", "..") or os.path.basename(name) != name:
+        raise ValueError("Invalid Compose project name")
+    root = os.path.abspath(COMPOSE_DIR)
+    path = os.path.abspath(os.path.join(root, name))
+    if path == root or not path.startswith(root + os.sep):
+        raise ValueError("Invalid Compose project path")
+    if not os.path.isdir(path):
+        return {"ok": True}
+    subprocess.run(["docker", "compose", "down"], cwd=path,
+                   capture_output=True, text=True, timeout=300)
+    shutil.rmtree(path)
+    return {"ok": True}

@@ -284,7 +284,8 @@ pre.logbox{background:#0a0810;padding:16px;border-radius:11px;font-family:'JetBr
 .nx-view-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:linear-gradient(135deg,rgba(122,74,255,.12),rgba(6,182,212,.06));border:1px solid var(--border-accent);border-radius:14px;padding:16px 18px;margin-bottom:16px}
 .nx-view-intro h3{font-size:15px;font-weight:700;margin-bottom:5px;color:var(--text)}
 .nx-view-intro p{font-size:12px;color:var(--text2);line-height:1.5;max-width:720px}
-.nx-expert-actions{margin-bottom:16px}
+.nx-expert-actions{justify-content:flex-end;margin-bottom:16px}
+.expert-mode .nx-expert-actions{display:flex;justify-content:flex-end}
 .expert-mode .nx-action-card>p.nx-action-sub{display:none}
 .nx-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
 .nx-summary-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;min-width:0}
@@ -292,12 +293,18 @@ pre.logbox{background:#0a0810;padding:16px;border-radius:11px;font-family:'JetBr
 .nx-summary-card .v{font-size:20px;font-weight:700;color:var(--text);line-height:1.1;overflow:hidden;text-overflow:ellipsis}
 .nx-summary-card .s{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.35}
 .nx-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
-.nx-action-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:15px;min-width:0;transition:border-color .15s,transform .15s}
+.nx-action-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;min-width:0;transition:border-color .15s,transform .15s}
 .nx-action-card:hover{border-color:var(--border-accent);transform:translateY(-1px)}
 .nx-action-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
 .nx-action-title{font-size:14px;font-weight:700;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis}
 .nx-action-sub{font-size:12px;color:var(--text2);line-height:1.45;margin-bottom:12px}
-.nx-action-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.nx-action-card>.nx-action-title{margin-bottom:9px}
+.nx-action-card>.nx-action-sub+.nx-action-row,.nx-action-card>.nx-action-title+.nx-action-row{margin-top:10px}
+.nx-action-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.nx-action-card>.btn,.nx-action-card>button.btn{margin-top:10px}
+.nx-card-grid.actions-grid .nx-action-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:96px}
+.nx-card-grid.actions-grid .nx-action-row{margin-top:auto;padding-top:10px}
+.service-title{font-size:12px;font-weight:600;line-height:1.25;white-space:normal;overflow-wrap:anywhere;color:var(--text)}
 .nx-kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
 .nx-kv div{background:rgba(255,255,255,.03);border-radius:8px;padding:8px;min-width:0}
 .nx-kv span{display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
@@ -371,6 +378,7 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
 .install-indicator.done .install-bar-fill{background:var(--green)}
 .install-indicator.error .install-bar-fill{background:var(--red)}
 .install-pct{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;min-width:26px;text-align:right}
+.modal-head-actions .install-indicator{margin-right:8px}
 
 /* ── Dashboard ── */
 .dash-section{margin-top:28px}
@@ -805,8 +813,11 @@ async function refreshSystemUpdateBadge(){
   const now=Date.now();
   if(now<_systemUpdateBadgeNext){applySystemUpdateBadge();return;}
   _systemUpdateBadgeNext=now+(30*60*1000);
-  const u=await api('/sysmgr/updates');
-  _systemUpdateBadgeHasUpdates=(u.updates||0)>0;
+  const [u,rv]=await Promise.all([
+    api('/sysmgr/updates').catch(()=>({updates:0})),
+    api('/sysmgr/runvard-release').catch(()=>({update_available:false})),
+  ]);
+  _systemUpdateBadgeHasUpdates=(u.updates||0)>0||!!rv.update_available;
   applySystemUpdateBadge();
 }
 async function loadTileBadges(){
@@ -1867,6 +1878,7 @@ window.pullForm=()=>openForm('Image ziehen','🐳',[{name:'name',label:'Image-Na
 window.composeForm=()=>openForm('Compose-Projekt','🐳',[{name:'name',label:'Projektname',placeholder:'meine-app'},{name:'content',label:'docker-compose.yml',type:'textarea',rows:12,value:'services:\n  web:\n    image: nginx:latest\n    ports:\n      - "8080:80"'}],async d=>{await post('/docker/compose/save',d);closeForm();toast('Projekt gespeichert');renderDocker($('#modal-body'),'Compose');});
 window.composeEdit=async name=>{const c=await api('/docker/compose/get?name='+encodeURIComponent(name));openForm('Compose bearbeiten: '+name,'🐳',[{name:'content',label:'docker-compose.yml',type:'textarea',rows:14,value:c.content}],async d=>{await post('/docker/compose/save',{name,content:d.content});closeForm();toast('Gespeichert');});};
 window.composeAct=async(name,action)=>{toast(action==='up'?'Starte '+name+'…':'Stoppe '+name+'…');try{const r=await post('/docker/compose/action',{name,action});const msgs={up:'Projekt gestartet: '+name,down:'Projekt gestoppt: '+name,restart:'Projekt neugestartet: '+name};toast(r.ok?(msgs[action]||'OK'):'Fehler',r.ok?'success':'error');renderDocker($('#modal-body'),'Compose');}catch(e){toast('Fehler: '+e.message,'error');}};
+window.composeDelete=name=>typedConfirm('Delete Compose project',`Compose project "${name}" will be stopped and removed.`,name,async()=>{try{const r=await post('/docker/compose/remove',{name});if(r&&r.ok===false){toast(r.stderr||'Error','error');return;}toast('Compose project deleted');renderDocker($('#modal-body'),'Compose');}catch(e){toast('Error: '+e.message,'error');}});
 // Punkt 1: App-URL öffnen
 window.composeOpen=async name=>{const c=await api('/docker/compose/get?name='+encodeURIComponent(name));const port=extractPort(c.content);if(port){window.open(`http://${serverHost()}:${port}`,'_blank');}else{toast('Kein Port im Compose-File gefunden','error');}};
 
@@ -2250,6 +2262,7 @@ window.toggleBondCard=el=>{
   el.querySelector('div').style.color=selected?'var(--text)':'#9d7aff';
 };
 window.createBond=async()=>{const name=$('#bond-name').value;const members=[...document.querySelectorAll('.bond-iface-card')].filter(el=>el.style.borderColor==='rgba(122, 74, 255, 0.5)').map(el=>el.dataset.iface).join(',');const mode=$('#bond-mode').value;if(!members){toast('Mindestens ein Interface wählen','error');return;}try{await post('/network/bond/create',{name,members,mode});toast('Bond erstellt');renderNetwork($('#modal-body'),'Interfaces');}catch(e){toast('Fehler: '+e.message,'error');}};
+window.bondForm=async()=>{const ifs=await api('/network/interfaces');const phys=ifs.filter(i=>!i.is_bond&&!/^(bond|br|docker|veth)/.test(i.name)&&!/\.\d+$/.test(i.name)).map(i=>i.name);openForm('Bond erstellen','⬡',[{name:'name',label:'Bond-Name',value:'bond0'},{name:'mode',label:'Modus',type:'select',options:[{value:'802.3ad',label:'LACP (802.3ad)'},{value:'active-backup',label:'Active-Backup'},{value:'balance-rr',label:'Round-Robin'}]},{name:'members',label:'Interfaces (Komma-getrennt)',value:phys.slice(0,2).join(','),hint:'Verfügbar: '+(phys.join(', ')||'keine')}],async d=>{closeForm();if(!d.members){toast('Mindestens ein Interface wählen','error');return;}try{const r=await post('/network/bond/create',d);if(r&&r.ok===false){toast(r.stderr||'Fehler','error');return;}toast('Bond erstellt');renderNetwork($('#modal-body'),'Interfaces');}catch(e){toast('Fehler: '+e.message,'error');}});};
 window.ipConfigForm=(iface,cur)=>openForm('IP konfigurieren: '+iface,'⚙',[
   {name:'mode',label:'Modus',type:'select',options:[{value:'static',label:'Statisch'},{value:'dhcp',label:'DHCP'}]},
   {name:'ip',label:'IP-Adresse',value:cur,placeholder:'192.168.1.50'},
@@ -2969,6 +2982,18 @@ function updateAppsBadge(){
     el.className='tile-badge';
   }
 }
+function ensureInstallIndicatorHost(){
+  const actions=$('#modal-head-actions');
+  if(!actions)return null;
+  let host=$('#install-indicators');
+  if(!host){
+    host=document.createElement('div');
+    host.id='install-indicators';
+    host.style.cssText='display:flex;gap:8px;align-items:center;margin-right:8px';
+    actions.insertBefore(host,actions.firstChild);
+  }
+  return host;
+}
 
 async function renderApps(body){
   body.innerHTML='<div class="loading">Lädt App-Katalog…</div>';
@@ -3067,7 +3092,7 @@ window.appInstallForm=async id=>{
     ],async d=>{
       closeForm();
       // Inline-Indikator in Modal-Header
-      const actions=$('#modal-head-actions');
+      const actions=ensureInstallIndicatorHost();
       if(!actions)return;
       const indicator=document.createElement('div');
       indicator.className='install-indicator';
@@ -3595,7 +3620,7 @@ async function renderDockerAdvanced(body,tab){
   if(oldTab==='Compose'){
     const p=await api('/docker/compose');
     body.innerHTML=viewIntro('Compose projects','Advanced multi-container projects. Editing Compose files can break services.',`<button class="btn" onclick="composeForm()">Create project</button>`)
-      +simpleTable(['Project','Status','Actions'],p.map(x=>`<tr><td>${esc(x.name)}</td><td>${statusBadge(x.running?'Running':'Stopped',x.running?'good':'warn')}</td><td><button class="btn sm" onclick="composeAct('${esc(x.name)}','up')">Start</button> <button class="btn ghost sm" onclick="composeEdit('${esc(x.name)}')">Edit</button></td></tr>`).join(''));
+      +simpleTable(['Project','Status','Actions'],p.map(x=>`<tr><td>${esc(x.name)}</td><td>${statusBadge(x.running?'Running':'Stopped',x.running?'good':'warn')}</td><td><button class="btn sm" onclick="composeAct('${esc(x.name)}','up')">Start</button> <button class="btn ghost sm" onclick="composeAct('${esc(x.name)}','down')">Stop</button> <button class="btn ghost sm" onclick="composeEdit('${esc(x.name)}')">Edit</button> <button class="btn danger sm" onclick="composeDelete('${esc(x.name)}')">Delete</button></td></tr>`).join(''));
   } else if(oldTab==='Images'){
     const im=await api('/docker/images');
     body.innerHTML=viewIntro('Images','Images are templates used to create containers.',`<button class="btn" onclick="pullForm()">Pull image</button>`)
@@ -3640,22 +3665,35 @@ window.appInstallForm=async id=>{
       const content=$('#app-compose-content')?.value||a.compose||'';
       closeForm();
       toast('Installing '+a.name+'…');
+      const host=ensureInstallIndicatorHost();
+      const indicator=document.createElement('div');
+      indicator.className='install-indicator';
+      indicator.innerHTML=`<span class="install-dot"></span><span class="install-label">${esc(a.name)}</span><span class="install-bar-wrap"><span class="install-bar-fill" id="inst-bar-${esc(id)}"></span></span><span class="install-pct" id="inst-step-${esc(id)}">…</span>`;
+      if(host)host.insertBefore(indicator,host.firstChild);
       try{
         const r=await post('/apps/install',{app_id:id,content});
-        if(!r.job_id){toast('Install did not start','error');return;}
+        if(!r.job_id){indicator.remove();toast('Install did not start','error');return;}
         _activeInstalls++;updateAppsBadge();
+        let progress=8;
         const poller=setInterval(async()=>{
           try{
             const s=await api('/apps/install-status?job_id='+encodeURIComponent(r.job_id));
+            const stepEl=$('#inst-step-'+id),barEl=$('#inst-bar-'+id),labelEl=indicator.querySelector('.install-label');
+            if(stepEl)stepEl.textContent=s.step||'…';
+            if(s.status==='pulling')progress=Math.min(progress+2,70);
+            else if(s.status==='starting')progress=Math.min(progress+6,95);
+            if(barEl)barEl.style.width=Math.round(progress)+'%';
             if(s.status==='done'||s.status==='error'){
               clearInterval(poller);_activeInstalls=Math.max(0,_activeInstalls-1);updateAppsBadge();
-              if(s.ok){toast(a.name+' installed');dashAutoAdd(a.id,a.name,a.icon,a.port);}
-              else toast(s.step||'Install failed','error');
+              if(barEl)barEl.style.width='100%';
+              if(s.ok){indicator.classList.add('done');if(labelEl)labelEl.textContent=a.name+' ✓';toast(a.name+' installed');dashAutoAdd(a.id,a.name,a.icon,a.port);}
+              else {indicator.classList.add('error');if(labelEl)labelEl.textContent='Install failed';toast(s.step||'Install failed','error');}
+              setTimeout(()=>indicator.remove(),3000);
               renderApps($('#modal-body'));
             }
           }catch(e){}
         },2000);
-      }catch(e){toast('Error: '+e.message,'error');}
+      }catch(e){indicator.classList.add('error');toast('Error: '+e.message,'error');setTimeout(()=>indicator.remove(),3000);}
     };
   }catch(e){toast('Error: '+e.message,'error');}
 };
@@ -3737,7 +3775,7 @@ async function renderNetwork(body,tab){
     return;
   }
   const ifs=await api('/network/interfaces');
-  body.innerHTML=tabs+viewIntro('Network interfaces','Most servers only need one connected interface with an IP address. Advanced networking is below.',`<button class="btn ghost" onclick="bridgeForm()">Advanced: bridge</button><button class="btn ghost" onclick="vlanForm()">VLAN</button>`)
+  body.innerHTML=tabs+viewIntro('Network interfaces','Most servers only need one connected interface with an IP address. Advanced networking is below.',`<button class="btn ghost" onclick="bondForm()">Bond</button><button class="btn ghost" onclick="bridgeForm()">Advanced: bridge</button><button class="btn ghost" onclick="vlanForm()">VLAN</button>`)
     +`<div class="nx-card-grid">${ifs.map(i=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(i.name)}</div>${statusBadge(i.up?'Connected':'Down',i.up?'good':'bad')}</div><div class="nx-kv">${cardMetric('IP',esc(i.ipv4||'No IP'))}${cardMetric('Speed',i.speed?i.speed+' Mbit':'Unknown')}${cardMetric('MAC',esc(i.mac||'-'))}${cardMetric('Type',i.is_bond?'Bond':'Interface')}</div><button class="btn ghost sm" onclick="ipConfigForm('${esc(i.name)}','${i.ipv4||''}')">Configure IP</button></div>`).join('')}</div>`;
 }
 window.fwDelete=num=>typedConfirm('Delete firewall rule',`Firewall rule ${num} will be removed.`,String(num),async()=>{try{await post('/network/firewall/remove',{num});toast('Rule removed');renderNetwork($('#modal-body'),'Firewall');}catch(e){toast('Error: '+e.message,'error');}});
@@ -3762,7 +3800,7 @@ async function renderSystem(body,tab){
   if(tab==='Info'||tab==='Overview'||!tab){
     const [i,u,alerts]=await Promise.all([api('/system/info'),api('/sysmgr/updates').catch(()=>({updates:0})),api('/monitoring/alerts/history').catch(()=>[])]);
     const activeAlerts=(alerts||[]).filter(x=>!x.resolved).length;
-    body.innerHTML=viewIntro('System overview','This is the safe place to check health before changing settings.',`<button class="btn" onclick="renderSystem($('#modal-body'),'Updates')">Check updates</button>`)
+    body.innerHTML=viewIntro('System overview','This is the safe place to check health before changing settings.','')
       +`<div class="nx-summary-grid">${summaryCard('Server',esc(i.hostname),esc(i.os))}${summaryCard('Updates',u.updates||0,(u.updates||0)?'Attention needed':'System current')}${summaryCard('Alerts',activeAlerts,activeAlerts?'Review monitoring':'No active alerts')}${summaryCard('Uptime',fmtUptime(i.uptime_seconds),'Running time')}</div>
       <div class="nx-card-grid"><div class="nx-action-card"><div class="nx-action-title">Hardware</div><div class="nx-kv">${cardMetric('CPU',esc(i.cpu_model))}${cardMetric('Kernel',esc(i.kernel))}${cardMetric('Architecture',esc(i.arch))}${cardMetric('OS',esc(i.os))}</div></div></div>`;
     return;
@@ -3774,10 +3812,10 @@ async function renderSystem(body,tab){
   if(tab==='Wartung'||tab==='Maintenance')return renderMaintenance(body);
   if(tab==='Advanced'){
     body.innerHTML=viewIntro('Advanced system tools','These tools can change low-level server behavior. Use them only when needed.','')
-      +`<div class="nx-card-grid">
-        <div class="nx-action-card"><div class="nx-action-title">Packages</div><p class="nx-action-sub">Search, install or remove apt packages.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'Pakete')">Open packages</button></div>
-        <div class="nx-action-card"><div class="nx-action-title">AppArmor</div><p class="nx-action-sub">Inspect or change application security profiles.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'AppArmor')">Open AppArmor</button></div>
-        <div class="nx-action-card"><div class="nx-action-title">Cron</div><p class="nx-action-sub">Create scheduled command jobs.</p><button class="btn sm" onclick="renderSystem($('#modal-body'),'Cron')">Open Cron</button></div>
+      +`<div class="nx-card-grid actions-grid">
+        <div class="nx-action-card"><div class="nx-action-title">Packages</div><p class="nx-action-sub">Search, install or remove apt packages.</p><div class="nx-action-row"><button class="btn sm" onclick="renderSystem($('#modal-body'),'Pakete')">Open packages</button></div></div>
+        <div class="nx-action-card"><div class="nx-action-title">AppArmor</div><p class="nx-action-sub">Inspect or change application security profiles.</p><div class="nx-action-row"><button class="btn sm" onclick="renderSystem($('#modal-body'),'AppArmor')">Open AppArmor</button></div></div>
+        <div class="nx-action-card"><div class="nx-action-title">Cron</div><p class="nx-action-sub">Create scheduled command jobs.</p><div class="nx-action-row"><button class="btn sm" onclick="renderSystem($('#modal-body'),'Cron')">Open Cron</button></div></div>
       </div>`;
     return;
   }
@@ -3798,7 +3836,7 @@ async function renderSystem(body,tab){
 async function renderServicesSimple(body){
   const s=await api('/services/list');
   body.innerHTML=viewIntro('Services','Start, stop or inspect system services. Changing core services can disconnect runvard.', '')
-    +`<div class="nx-card-grid">${s.slice(0,80).map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title mono">${esc(x.name)}</div>${statusBadge(x.active,x.active==='active'?'good':'warn')}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="svcAct('${esc(x.name)}','${x.active==='active'?'restart':'start'}')">${x.active==='active'?'Restart':'Start'}</button><button class="btn ghost sm" onclick="svcLogs('${esc(x.name)}')">Logs</button></div></div>`).join('')}</div>`;
+    +`<div class="nx-card-grid">${s.slice(0,80).map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="service-title mono">${esc(x.name)}</div>${statusBadge(x.active,x.active==='active'?'good':'warn')}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="svcAct('${esc(x.name)}','${x.active==='active'?'restart':'start'}')">${x.active==='active'?'Restart':'Start'}</button><button class="btn ghost sm" onclick="svcLogs('${esc(x.name)}')">Logs</button></div></div>`).join('')}</div>`;
 }
 const renderSystemOriginalFallback=async(body,tab)=>{
   if(tab==='Updates'){
@@ -3817,7 +3855,7 @@ const renderSystemOriginalFallback=async(body,tab)=>{
       </div>
       <div class="nx-card-grid">
         <div class="nx-action-card">
-          <div class="nx-action-head"><div class="nx-action-title">runvard repository</div>${statusBadge(runvardLabel,runvardTone)}</div>
+          <div class="nx-action-head"><div class="nx-action-title">runvard repository</div></div>
           <div class="nx-kv">
             ${cardMetric('Installed',esc(runvard.local_short||'Unknown'))}
             ${cardMetric('GitHub main',esc(remote.short||'Unknown'))}
@@ -3834,10 +3872,12 @@ const renderSystemOriginalFallback=async(body,tab)=>{
         </div>
       </div>
       <pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
+    _systemUpdateBadgeHasUpdates=(u.updates||0)>0||!!runvard.update_available;
+    applySystemUpdateBadge();
   } else if(tab==='Freigaben'||tab==='Shares')return renderSharesAll(body);
   else if(tab==='Wartung'||tab==='Maintenance')return renderMaintenance(body);
   else if(tab==='Power'){
-    body.innerHTML=viewIntro('Power','Restart or shut down the server.', '')+`<div class="nx-card-grid"><div class="nx-action-card"><div class="nx-action-title">Restart</div><p class="nx-action-sub">Reboot the server now or after a delay.</p><button class="btn ghost" onclick="powerForm('reboot')">Restart</button></div><div class="nx-action-card"><div class="nx-action-title">Shut down</div><p class="nx-action-sub">Power off the server.</p><button class="btn danger" onclick="powerForm('shutdown')">Shut down</button></div></div>`;
+    body.innerHTML=viewIntro('Power','Restart or shut down the server.', '')+`<div class="nx-card-grid actions-grid"><div class="nx-action-card"><div class="nx-action-title">Restart</div><p class="nx-action-sub">Reboot the server now or after a delay.</p><div class="nx-action-row"><button class="btn ghost" onclick="powerForm('reboot')">Restart</button></div></div><div class="nx-action-card"><div class="nx-action-title">Shut down</div><p class="nx-action-sub">Power off the server.</p><div class="nx-action-row"><button class="btn danger" onclick="powerForm('shutdown')">Shut down</button></div></div></div>`;
   } else body.innerHTML=viewIntro(tab||'System','This advanced section is still available.','')+emptyState('Open another tab to continue');
 };
 function renderDashboard(){

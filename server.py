@@ -825,6 +825,14 @@ def docker_compose_action(name: str = Form(...), action: str = Form(...),
     return docker_mgr.compose_action(name, action)
 
 
+@app.post("/api/docker/compose/remove")
+def docker_compose_remove(name: str = Form(...), user: str = Depends(auth)):
+    try:
+        return docker_mgr.remove_compose_project(name)
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
 # ============ Services ============
 
 @app.get("/api/services/list")
