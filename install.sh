@@ -8,7 +8,8 @@
 set -euo pipefail
 
 ARCHIVE_URL="${NEXUS_ARCHIVE_URL:-https://github.com/mschoettli/Nexus/archive/refs/heads/main.tar.gz}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LOCAL_INSTALLER="${SCRIPT_DIR}/scripts/install-full.sh"
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -48,4 +49,4 @@ if [ -z "$NEXUS_DIR" ] || [ ! -f "$REMOTE_INSTALLER" ] || [ ! -f "${NEXUS_DIR}/s
   exit 1
 fi
 
-bash "$REMOTE_INSTALLER" "$@"
+NEXUS_SOURCE_DIR="$NEXUS_DIR" bash "$REMOTE_INSTALLER" "$@"

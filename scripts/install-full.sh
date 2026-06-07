@@ -113,8 +113,9 @@ command -v apt-get >/dev/null 2>&1 || die "Dieses Skript benötigt Debian/Ubuntu
 INSTALL_DIR="/opt/nexus"
 SERVICE_FILE="/etc/systemd/system/nexus.service"
 ENV_FILE="${INSTALL_DIR}/data/nexus.env"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SRC="${NEXUS_SOURCE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 [ -f "${SRC}/server.py" ] || die "server.py nicht gefunden. Installer bitte aus dem Nexus-Release starten."
 
 # Vorhandene Installation erkennen
