@@ -62,6 +62,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .um-switch input:checked+.um-slider:before{transform:translateX(16px)}
 .um-logout{width:100%;margin-top:4px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18);color:#f87171;padding:9px;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
 .um-logout:hover{background:var(--red);color:#fff}
+.um-action{width:100%;text-align:left;background:transparent;border:none;border-top:.5px solid var(--border);color:var(--text2);padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.um-action:hover{background:rgba(122,74,255,.08);color:var(--text)}
 
 /* ── Widgets ── */
 .container{max-width:1200px;margin:0 auto;padding:28px}
@@ -463,22 +465,23 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
   <div class="time mono" id="clock" style="font-size:10px;color:rgba(240,240,255,.3);letter-spacing:.01em;white-space:nowrap">…</div>
   <div class="topright">
     <button class="bg-btn-icon" onclick="openBtop()" title="btop – System Monitor" style="font-size:11px;font-weight:600;letter-spacing:.03em">btop</button>
-    <button class="bg-btn-icon" onclick="toggleBgPanel()" title="Hintergrund" style="font-size:14px">⬡</button>
+    <button class="bg-btn-icon" onclick="toggleBgPanel()" data-i18n-title="backgroundTitle" title="Hintergrund" style="font-size:14px">⬡</button>
     <div class="topbar-sep"></div>
     <div class="user-menu-wrap">
       <span id="topbar-user" onclick="toggleUserMenu(event)" style="font-size:11px;color:rgba(240,240,255,.4);cursor:pointer;padding:4px 8px;border-radius:7px">…</span>
       <div class="user-menu" id="user-menu">
         <div class="um-head" id="um-head">…</div>
         <div class="um-row">
-          <span>Login-Seite</span>
+          <span data-i18n="loginPage">Login-Seite</span>
           <label class="um-switch"><input type="checkbox" id="um-login-toggle" onchange="toggleLogin(this.checked)"><span class="um-slider"></span></label>
         </div>
         <div class="um-row">
           <span>Expert Mode</span>
           <label class="um-switch"><input type="checkbox" id="um-expert-toggle" onchange="setExpertMode(this.checked)"><span class="um-slider"></span></label>
         </div>
-        <button id="um-accounts" onclick="accountsManage()" style="display:none;width:100%;text-align:left;background:transparent;border:none;border-top:.5px solid var(--border);color:var(--text2);padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit">👥 runvard-Konten</button>
-        <button class="um-logout" onclick="doLogout()">Abmelden</button>
+        <button class="um-action" onclick="openLanguageModal()">🌐 <span data-i18n="language">Sprache</span></button>
+        <button id="um-accounts" class="um-action" onclick="accountsManage()" style="display:none">👥 <span data-i18n="runvardAccounts">runvard-Konten</span></button>
+        <button class="um-logout" onclick="doLogout()" data-i18n="logout">Abmelden</button>
       </div>
     </div>
   </div>
@@ -495,7 +498,7 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
   <div class="dash-section" id="dash-section">
     <div class="dash-head">
       <div style="flex:1"></div>
-      <button class="dash-add-btn" onclick="dashAddForm()" title="Kachel hinzufügen">+</button>
+      <button class="dash-add-btn" onclick="dashAddForm()" data-i18n-title="addTile" title="Kachel hinzufügen">+</button>
     </div>
     <div class="dash-grid" id="dash-grid"></div>
   </div>
@@ -508,9 +511,9 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
       <div class="modal-title" id="modal-title"></div>
       <div class="modal-head-actions" id="modal-head-actions">
         <div class="modal-search" id="modal-search">
-          <input type="text" class="nx-search" placeholder="Suchen…" id="search-input" oninput="doSearch(this.value)">
+          <input type="text" class="nx-search" data-i18n-placeholder="searchPlaceholder" placeholder="Suchen…" id="search-input" oninput="doSearch(this.value)">
         </div>
-        <button class="search-toggle" id="search-btn" onclick="toggleSearch()" title="Suchen">🔍</button>
+        <button class="search-toggle" id="search-btn" onclick="toggleSearch()" data-i18n-title="search" title="Suchen">🔍</button>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
     </div>
@@ -531,11 +534,11 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-card">
     <div class="ci">⚠️</div>
-    <h3 id="confirm-title">Löschen bestätigen</h3>
+    <h3 id="confirm-title" data-i18n="confirmDelete">Löschen bestätigen</h3>
     <p id="confirm-msg"></p>
     <div class="confirm-actions">
-      <button class="btn ghost" onclick="closeConfirm()">Abbrechen</button>
-      <button class="btn danger" id="confirm-ok" style="padding:7px 20px">Löschen</button>
+      <button class="btn ghost" onclick="closeConfirm()" data-i18n="cancel">Abbrechen</button>
+      <button class="btn danger" id="confirm-ok" style="padding:7px 20px" data-i18n="delete">Löschen</button>
     </div>
   </div>
 </div>
@@ -544,33 +547,33 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
 <div class="bg-panel-overlay" id="bg-panel-overlay">
   <div class="bg-panel">
     <div class="bg-panel-head">
-      <span>🖼 Hintergrund</span>
+      <span>🖼 <span data-i18n="background">Hintergrund</span></span>
       <button class="bg-btn-icon" onclick="toggleBgPanel()">✕</button>
     </div>
     <div class="bg-panel-body">
 
       <div class="bg-section">
-        <div class="bg-section-label">Vorlagen</div>
+        <div class="bg-section-label" data-i18n="presets">Vorlagen</div>
         <div class="bg-presets" id="bg-presets"></div>
       </div>
 
       <div class="bg-section">
-        <div class="bg-section-label">Bild hochladen</div>
+        <div class="bg-section-label" data-i18n="uploadImage">Bild hochladen</div>
         <label class="bg-upload-area">
-          📂 Klicken oder Bild hierher ziehen
+          📂 <span data-i18n="dropImage">Klicken oder Bild hierher ziehen</span>
           <input type="file" id="bg-file" accept="image/*" hidden onchange="applyImageFile(this)">
         </label>
       </div>
 
       <div class="bg-section">
-        <div class="bg-section-label">Bild-URL</div>
+        <div class="bg-section-label" data-i18n="imageUrl">Bild-URL</div>
         <div style="display:flex;gap:8px">
           <input type="text" id="bg-url-input" placeholder="https://…" style="font-size:12px">
           <button class="btn sm" onclick="applyUrl($('#bg-url-input').value)">OK</button>
         </div>
       </div>
 
-      <button class="btn ghost sm" style="width:100%;margin-top:4px" onclick="resetBg()">↺ Standard wiederherstellen</button>
+      <button class="btn ghost sm" style="width:100%;margin-top:4px" onclick="resetBg()">↺ <span data-i18n="restoreDefault">Standard wiederherstellen</span></button>
     </div>
   </div>
 </div>
@@ -585,6 +588,74 @@ const post=(p,d)=>{const fd=new FormData();for(const k in d)fd.append(k,d[k]);re
 const fmtBytes=b=>{if(!b)return'0 B';const u=['B','KB','MB','GB','TB'],i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(1)+' '+u[i];};
 const fmtUptime=s=>{const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);return`${d}d ${h}h ${m}m`;};
 const esc=s=>(s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LANGUAGE_KEY='runvard_language';
+const LANGUAGES=[
+  {code:'de',name:'Deutsch'},
+  {code:'en',name:'English'},
+  {code:'fr',name:'Français'},
+  {code:'it',name:'Italiano'},
+  {code:'es',name:'Español'},
+  {code:'pt',name:'Português'},
+  {code:'nl',name:'Nederlands'},
+  {code:'pl',name:'Polski'},
+  {code:'tr',name:'Türkçe'},
+  {code:'uk',name:'Українська'},
+];
+const I18N={
+  de:{language:'Sprache',languageSettings:'Sprache einstellen',languageField:'Sprache',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',continue:'Fortfahren',close:'Schliessen',search:'Suchen',searchPlaceholder:'Suchen…',loading:'Lädt…',error:'Fehler',logout:'Abmelden',loginPage:'Login-Seite',runvardAccounts:'runvard-Konten',background:'Hintergrund',backgroundTitle:'Hintergrund',presets:'Vorlagen',uploadImage:'Bild hochladen',dropImage:'Klicken oder Bild hierher ziehen',imageUrl:'Bild-URL',restoreDefault:'Standard wiederherstellen',addTile:'Kachel hinzufügen',confirmDelete:'Löschen bestätigen',saved:'Gespeichert',languageSaved:'Sprache gespeichert',expertOn:'Expert Mode aktiviert',expertOff:'Expert Mode deaktiviert',loginEnabled:'Login aktiviert – beim nächsten Aufruf ist Anmeldung nötig',loginDisabled:'Login deaktiviert',signedInAs:'Angemeldet als',loginDisabledHead:'Login ist deaktiviert',daySuffix:'Uhr',typeToContinue:'Eingeben zum Fortfahren.',tileTerminal:'Terminal',tileFiles:'Dateien',tileStorage:'Speicher',tileDocker:'Docker',tileVms:'VMs',tileBackup:'Backup',tileMonitoring:'Monitoring',tileSystem:'System',tileApps:'Apps',descShell:'Shell',descFiles:'Durchsuchen · Hochladen · Teilen',descStorage:'Laufwerke · Pools · Zustand',descDocker:'Container · Compose',descVms:'Maschinen · Speicher',descBackup:'Jobs · Verlauf',descMonitoring:'Logs · Alarme · Audit',descSystem:'Übersicht · Updates · Benutzer',tabDisks:'Laufwerke',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Container',tabCompose:'Compose',tabImages:'Images',tabVolumes:'Volumes',tabMachines:'Maschinen',tabStoragePools:'Speicherpools',tabJobs:'Jobs',tabHistory:'Verlauf',tabLogs:'Logs',tabAlerts:'Alarme',tabAudit:'Audit',tabOverview:'Übersicht',tabUpdates:'Updates',tabUsers:'Benutzer',tabNetwork:'Netzwerk',tabServices:'Services',tabShares:'Freigaben',tabMaintenance:'Wartung',tabAdvanced:'Erweitert',tabPower:'Power'},
+  en:{language:'Language',languageSettings:'Language settings',languageField:'Language',save:'Save',cancel:'Cancel',delete:'Delete',continue:'Continue',close:'Close',search:'Search',searchPlaceholder:'Search…',loading:'Loading…',error:'Error',logout:'Log out',loginPage:'Login page',runvardAccounts:'runvard accounts',background:'Background',backgroundTitle:'Background',presets:'Presets',uploadImage:'Upload image',dropImage:'Click or drop image here',imageUrl:'Image URL',restoreDefault:'Restore default',addTile:'Add tile',confirmDelete:'Confirm delete',saved:'Saved',languageSaved:'Language saved',expertOn:'Expert Mode enabled',expertOff:'Expert Mode disabled',loginEnabled:'Login enabled - sign-in is required on next visit',loginDisabled:'Login disabled',signedInAs:'Signed in as',loginDisabledHead:'Login is disabled',daySuffix:'',typeToContinue:'Type to continue.',tileTerminal:'Terminal',tileFiles:'Files',tileStorage:'Storage',tileDocker:'Docker',tileVms:'VMs',tileBackup:'Backup',tileMonitoring:'Monitoring',tileSystem:'System',tileApps:'Apps',descShell:'Shell',descFiles:'Browse · Upload · Share',descStorage:'Disks · Pools · Health',descDocker:'Container · Compose',descVms:'Machines · Storage',descBackup:'Jobs · History',descMonitoring:'Logs · Alerts · Audit',descSystem:'Overview · Updates · Users',tabDisks:'Disks',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Container',tabCompose:'Compose',tabImages:'Images',tabVolumes:'Volumes',tabMachines:'Machines',tabStoragePools:'Storage pools',tabJobs:'Jobs',tabHistory:'History',tabLogs:'Logs',tabAlerts:'Alerts',tabAudit:'Audit',tabOverview:'Overview',tabUpdates:'Updates',tabUsers:'Users',tabNetwork:'Network',tabServices:'Services',tabShares:'Shares',tabMaintenance:'Maintenance',tabAdvanced:'Advanced',tabPower:'Power'},
+  fr:{language:'Langue',languageSettings:'Paramètres de langue',languageField:'Langue',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',continue:'Continuer',close:'Fermer',search:'Rechercher',searchPlaceholder:'Rechercher…',loading:'Chargement…',error:'Erreur',logout:'Déconnexion',loginPage:'Page de connexion',runvardAccounts:'Comptes runvard',background:'Arrière-plan',backgroundTitle:'Arrière-plan',presets:'Modèles',uploadImage:'Importer une image',dropImage:'Cliquez ou déposez une image ici',imageUrl:'URL de l’image',restoreDefault:'Restaurer par défaut',addTile:'Ajouter une tuile',confirmDelete:'Confirmer la suppression',saved:'Enregistré',languageSaved:'Langue enregistrée',expertOn:'Mode expert activé',expertOff:'Mode expert désactivé',loginEnabled:'Connexion activée',loginDisabled:'Connexion désactivée',signedInAs:'Connecté en tant que',loginDisabledHead:'La connexion est désactivée',daySuffix:'',typeToContinue:'Saisissez pour continuer.',tileTerminal:'Terminal',tileFiles:'Fichiers',tileStorage:'Stockage',tileDocker:'Docker',tileVms:'VM',tileBackup:'Sauvegarde',tileMonitoring:'Monitoring',tileSystem:'Système',tileApps:'Apps',descShell:'Shell',descFiles:'Parcourir · Importer · Partager',descStorage:'Disques · Pools · Santé',descDocker:'Conteneurs · Compose',descVms:'Machines · Stockage',descBackup:'Tâches · Historique',descMonitoring:'Logs · Alertes · Audit',descSystem:'Vue d’ensemble · Mises à jour · Utilisateurs',tabDisks:'Disques',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Conteneurs',tabCompose:'Compose',tabImages:'Images',tabVolumes:'Volumes',tabMachines:'Machines',tabStoragePools:'Pools de stockage',tabJobs:'Tâches',tabHistory:'Historique',tabLogs:'Logs',tabAlerts:'Alertes',tabAudit:'Audit',tabOverview:'Vue d’ensemble',tabUpdates:'Mises à jour',tabUsers:'Utilisateurs',tabNetwork:'Réseau',tabServices:'Services',tabShares:'Partages',tabMaintenance:'Maintenance',tabAdvanced:'Avancé',tabPower:'Alimentation'},
+  it:{language:'Lingua',languageSettings:'Impostazioni lingua',languageField:'Lingua',save:'Salva',cancel:'Annulla',delete:'Elimina',continue:'Continua',close:'Chiudi',search:'Cerca',searchPlaceholder:'Cerca…',loading:'Caricamento…',error:'Errore',logout:'Disconnetti',loginPage:'Pagina login',runvardAccounts:'Account runvard',background:'Sfondo',backgroundTitle:'Sfondo',presets:'Preset',uploadImage:'Carica immagine',dropImage:'Clicca o trascina un’immagine qui',imageUrl:'URL immagine',restoreDefault:'Ripristina predefinito',addTile:'Aggiungi riquadro',confirmDelete:'Conferma eliminazione',saved:'Salvato',languageSaved:'Lingua salvata',expertOn:'Modalità esperto attivata',expertOff:'Modalità esperto disattivata',loginEnabled:'Login attivato',loginDisabled:'Login disattivato',signedInAs:'Accesso come',loginDisabledHead:'Login disattivato',daySuffix:'',typeToContinue:'Digita per continuare.',tileTerminal:'Terminale',tileFiles:'File',tileStorage:'Archiviazione',tileDocker:'Docker',tileVms:'VM',tileBackup:'Backup',tileMonitoring:'Monitoraggio',tileSystem:'Sistema',tileApps:'App',descShell:'Shell',descFiles:'Sfoglia · Carica · Condividi',descStorage:'Dischi · Pool · Salute',descDocker:'Container · Compose',descVms:'Macchine · Archiviazione',descBackup:'Job · Cronologia',descMonitoring:'Log · Avvisi · Audit',descSystem:'Panoramica · Aggiornamenti · Utenti',tabDisks:'Dischi',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Container',tabCompose:'Compose',tabImages:'Immagini',tabVolumes:'Volumi',tabMachines:'Macchine',tabStoragePools:'Pool di archiviazione',tabJobs:'Job',tabHistory:'Cronologia',tabLogs:'Log',tabAlerts:'Avvisi',tabAudit:'Audit',tabOverview:'Panoramica',tabUpdates:'Aggiornamenti',tabUsers:'Utenti',tabNetwork:'Rete',tabServices:'Servizi',tabShares:'Condivisioni',tabMaintenance:'Manutenzione',tabAdvanced:'Avanzato',tabPower:'Alimentazione'},
+  es:{language:'Idioma',languageSettings:'Configuración de idioma',languageField:'Idioma',save:'Guardar',cancel:'Cancelar',delete:'Eliminar',continue:'Continuar',close:'Cerrar',search:'Buscar',searchPlaceholder:'Buscar…',loading:'Cargando…',error:'Error',logout:'Cerrar sesión',loginPage:'Página de acceso',runvardAccounts:'Cuentas runvard',background:'Fondo',backgroundTitle:'Fondo',presets:'Plantillas',uploadImage:'Subir imagen',dropImage:'Haz clic o suelta una imagen aquí',imageUrl:'URL de imagen',restoreDefault:'Restaurar predeterminado',addTile:'Añadir mosaico',confirmDelete:'Confirmar eliminación',saved:'Guardado',languageSaved:'Idioma guardado',expertOn:'Modo experto activado',expertOff:'Modo experto desactivado',loginEnabled:'Acceso activado',loginDisabled:'Acceso desactivado',signedInAs:'Sesión iniciada como',loginDisabledHead:'El acceso está desactivado',daySuffix:'',typeToContinue:'Escribe para continuar.',tileTerminal:'Terminal',tileFiles:'Archivos',tileStorage:'Almacenamiento',tileDocker:'Docker',tileVms:'VM',tileBackup:'Copias',tileMonitoring:'Monitorización',tileSystem:'Sistema',tileApps:'Apps',descShell:'Shell',descFiles:'Explorar · Subir · Compartir',descStorage:'Discos · Pools · Salud',descDocker:'Contenedores · Compose',descVms:'Máquinas · Almacenamiento',descBackup:'Tareas · Historial',descMonitoring:'Logs · Alertas · Auditoría',descSystem:'Resumen · Actualizaciones · Usuarios',tabDisks:'Discos',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Contenedores',tabCompose:'Compose',tabImages:'Imágenes',tabVolumes:'Volúmenes',tabMachines:'Máquinas',tabStoragePools:'Pools de almacenamiento',tabJobs:'Tareas',tabHistory:'Historial',tabLogs:'Logs',tabAlerts:'Alertas',tabAudit:'Auditoría',tabOverview:'Resumen',tabUpdates:'Actualizaciones',tabUsers:'Usuarios',tabNetwork:'Red',tabServices:'Servicios',tabShares:'Compartidos',tabMaintenance:'Mantenimiento',tabAdvanced:'Avanzado',tabPower:'Energía'},
+  pt:{language:'Idioma',languageSettings:'Definições de idioma',languageField:'Idioma',save:'Guardar',cancel:'Cancelar',delete:'Eliminar',continue:'Continuar',close:'Fechar',search:'Pesquisar',searchPlaceholder:'Pesquisar…',loading:'A carregar…',error:'Erro',logout:'Terminar sessão',loginPage:'Página de login',runvardAccounts:'Contas runvard',background:'Fundo',backgroundTitle:'Fundo',presets:'Predefinições',uploadImage:'Carregar imagem',dropImage:'Clique ou largue uma imagem aqui',imageUrl:'URL da imagem',restoreDefault:'Restaurar padrão',addTile:'Adicionar bloco',confirmDelete:'Confirmar eliminação',saved:'Guardado',languageSaved:'Idioma guardado',expertOn:'Modo especialista ativado',expertOff:'Modo especialista desativado',loginEnabled:'Login ativado',loginDisabled:'Login desativado',signedInAs:'Sessão iniciada como',loginDisabledHead:'Login desativado',daySuffix:'',typeToContinue:'Escreva para continuar.',tileTerminal:'Terminal',tileFiles:'Ficheiros',tileStorage:'Armazenamento',tileDocker:'Docker',tileVms:'VMs',tileBackup:'Backup',tileMonitoring:'Monitorização',tileSystem:'Sistema',tileApps:'Apps',descShell:'Shell',descFiles:'Navegar · Carregar · Partilhar',descStorage:'Discos · Pools · Estado',descDocker:'Contentores · Compose',descVms:'Máquinas · Armazenamento',descBackup:'Tarefas · Histórico',descMonitoring:'Logs · Alertas · Auditoria',descSystem:'Visão geral · Atualizações · Utilizadores',tabDisks:'Discos',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Contentores',tabCompose:'Compose',tabImages:'Imagens',tabVolumes:'Volumes',tabMachines:'Máquinas',tabStoragePools:'Pools de armazenamento',tabJobs:'Tarefas',tabHistory:'Histórico',tabLogs:'Logs',tabAlerts:'Alertas',tabAudit:'Auditoria',tabOverview:'Visão geral',tabUpdates:'Atualizações',tabUsers:'Utilizadores',tabNetwork:'Rede',tabServices:'Serviços',tabShares:'Partilhas',tabMaintenance:'Manutenção',tabAdvanced:'Avançado',tabPower:'Energia'},
+  nl:{language:'Taal',languageSettings:'Taalinstellingen',languageField:'Taal',save:'Opslaan',cancel:'Annuleren',delete:'Verwijderen',continue:'Doorgaan',close:'Sluiten',search:'Zoeken',searchPlaceholder:'Zoeken…',loading:'Laden…',error:'Fout',logout:'Uitloggen',loginPage:'Loginpagina',runvardAccounts:'runvard-accounts',background:'Achtergrond',backgroundTitle:'Achtergrond',presets:'Voorinstellingen',uploadImage:'Afbeelding uploaden',dropImage:'Klik of sleep afbeelding hierheen',imageUrl:'Afbeeldings-URL',restoreDefault:'Standaard herstellen',addTile:'Tegel toevoegen',confirmDelete:'Verwijderen bevestigen',saved:'Opgeslagen',languageSaved:'Taal opgeslagen',expertOn:'Expertmodus ingeschakeld',expertOff:'Expertmodus uitgeschakeld',loginEnabled:'Login ingeschakeld',loginDisabled:'Login uitgeschakeld',signedInAs:'Ingelogd als',loginDisabledHead:'Login is uitgeschakeld',daySuffix:'',typeToContinue:'Typ om door te gaan.',tileTerminal:'Terminal',tileFiles:'Bestanden',tileStorage:'Opslag',tileDocker:'Docker',tileVms:'VMs',tileBackup:'Back-up',tileMonitoring:'Monitoring',tileSystem:'Systeem',tileApps:'Apps',descShell:'Shell',descFiles:'Bladeren · Uploaden · Delen',descStorage:'Schijven · Pools · Status',descDocker:'Containers · Compose',descVms:'Machines · Opslag',descBackup:'Taken · Geschiedenis',descMonitoring:'Logs · Meldingen · Audit',descSystem:'Overzicht · Updates · Gebruikers',tabDisks:'Schijven',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Containers',tabCompose:'Compose',tabImages:'Images',tabVolumes:'Volumes',tabMachines:'Machines',tabStoragePools:'Opslagpools',tabJobs:'Taken',tabHistory:'Geschiedenis',tabLogs:'Logs',tabAlerts:'Meldingen',tabAudit:'Audit',tabOverview:'Overzicht',tabUpdates:'Updates',tabUsers:'Gebruikers',tabNetwork:'Netwerk',tabServices:'Services',tabShares:'Shares',tabMaintenance:'Onderhoud',tabAdvanced:'Geavanceerd',tabPower:'Power'},
+  pl:{language:'Język',languageSettings:'Ustawienia języka',languageField:'Język',save:'Zapisz',cancel:'Anuluj',delete:'Usuń',continue:'Kontynuuj',close:'Zamknij',search:'Szukaj',searchPlaceholder:'Szukaj…',loading:'Ładowanie…',error:'Błąd',logout:'Wyloguj',loginPage:'Strona logowania',runvardAccounts:'Konta runvard',background:'Tło',backgroundTitle:'Tło',presets:'Szablony',uploadImage:'Prześlij obraz',dropImage:'Kliknij lub upuść obraz tutaj',imageUrl:'URL obrazu',restoreDefault:'Przywróć domyślne',addTile:'Dodaj kafelek',confirmDelete:'Potwierdź usunięcie',saved:'Zapisano',languageSaved:'Język zapisany',expertOn:'Tryb eksperta włączony',expertOff:'Tryb eksperta wyłączony',loginEnabled:'Logowanie włączone',loginDisabled:'Logowanie wyłączone',signedInAs:'Zalogowano jako',loginDisabledHead:'Logowanie jest wyłączone',daySuffix:'',typeToContinue:'Wpisz, aby kontynuować.',tileTerminal:'Terminal',tileFiles:'Pliki',tileStorage:'Pamięć',tileDocker:'Docker',tileVms:'VM',tileBackup:'Backup',tileMonitoring:'Monitoring',tileSystem:'System',tileApps:'Aplikacje',descShell:'Shell',descFiles:'Przeglądaj · Prześlij · Udostępnij',descStorage:'Dyski · Pule · Stan',descDocker:'Kontenery · Compose',descVms:'Maszyny · Pamięć',descBackup:'Zadania · Historia',descMonitoring:'Logi · Alerty · Audyt',descSystem:'Przegląd · Aktualizacje · Użytkownicy',tabDisks:'Dyski',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Kontenery',tabCompose:'Compose',tabImages:'Obrazy',tabVolumes:'Wolumeny',tabMachines:'Maszyny',tabStoragePools:'Pule pamięci',tabJobs:'Zadania',tabHistory:'Historia',tabLogs:'Logi',tabAlerts:'Alerty',tabAudit:'Audyt',tabOverview:'Przegląd',tabUpdates:'Aktualizacje',tabUsers:'Użytkownicy',tabNetwork:'Sieć',tabServices:'Usługi',tabShares:'Udziały',tabMaintenance:'Konserwacja',tabAdvanced:'Zaawansowane',tabPower:'Zasilanie'},
+  tr:{language:'Dil',languageSettings:'Dil ayarları',languageField:'Dil',save:'Kaydet',cancel:'İptal',delete:'Sil',continue:'Devam',close:'Kapat',search:'Ara',searchPlaceholder:'Ara…',loading:'Yükleniyor…',error:'Hata',logout:'Çıkış yap',loginPage:'Giriş sayfası',runvardAccounts:'runvard hesapları',background:'Arka plan',backgroundTitle:'Arka plan',presets:'Ön ayarlar',uploadImage:'Görsel yükle',dropImage:'Tıkla veya görseli buraya bırak',imageUrl:'Görsel URL',restoreDefault:'Varsayılana dön',addTile:'Karo ekle',confirmDelete:'Silmeyi onayla',saved:'Kaydedildi',languageSaved:'Dil kaydedildi',expertOn:'Uzman modu açıldı',expertOff:'Uzman modu kapandı',loginEnabled:'Giriş etkin',loginDisabled:'Giriş devre dışı',signedInAs:'Oturum açan',loginDisabledHead:'Giriş devre dışı',daySuffix:'',typeToContinue:'Devam etmek için yazın.',tileTerminal:'Terminal',tileFiles:'Dosyalar',tileStorage:'Depolama',tileDocker:'Docker',tileVms:'VM’ler',tileBackup:'Yedekleme',tileMonitoring:'İzleme',tileSystem:'Sistem',tileApps:'Uygulamalar',descShell:'Shell',descFiles:'Göz at · Yükle · Paylaş',descStorage:'Diskler · Havuzlar · Sağlık',descDocker:'Konteyner · Compose',descVms:'Makineler · Depolama',descBackup:'İşler · Geçmiş',descMonitoring:'Loglar · Uyarılar · Denetim',descSystem:'Genel bakış · Güncellemeler · Kullanıcılar',tabDisks:'Diskler',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Konteynerler',tabCompose:'Compose',tabImages:'İmajlar',tabVolumes:'Volume’ler',tabMachines:'Makineler',tabStoragePools:'Depolama havuzları',tabJobs:'İşler',tabHistory:'Geçmiş',tabLogs:'Loglar',tabAlerts:'Uyarılar',tabAudit:'Denetim',tabOverview:'Genel bakış',tabUpdates:'Güncellemeler',tabUsers:'Kullanıcılar',tabNetwork:'Ağ',tabServices:'Servisler',tabShares:'Paylaşımlar',tabMaintenance:'Bakım',tabAdvanced:'Gelişmiş',tabPower:'Güç'},
+  uk:{language:'Мова',languageSettings:'Налаштування мови',languageField:'Мова',save:'Зберегти',cancel:'Скасувати',delete:'Видалити',continue:'Продовжити',close:'Закрити',search:'Пошук',searchPlaceholder:'Пошук…',loading:'Завантаження…',error:'Помилка',logout:'Вийти',loginPage:'Сторінка входу',runvardAccounts:'Облікові записи runvard',background:'Тло',backgroundTitle:'Тло',presets:'Шаблони',uploadImage:'Завантажити зображення',dropImage:'Натисніть або перетягніть зображення сюди',imageUrl:'URL зображення',restoreDefault:'Відновити типове',addTile:'Додати плитку',confirmDelete:'Підтвердити видалення',saved:'Збережено',languageSaved:'Мову збережено',expertOn:'Експертний режим увімкнено',expertOff:'Експертний режим вимкнено',loginEnabled:'Вхід увімкнено',loginDisabled:'Вхід вимкнено',signedInAs:'Увійшли як',loginDisabledHead:'Вхід вимкнено',daySuffix:'',typeToContinue:'Введіть, щоб продовжити.',tileTerminal:'Термінал',tileFiles:'Файли',tileStorage:'Сховище',tileDocker:'Docker',tileVms:'VM',tileBackup:'Резервні копії',tileMonitoring:'Моніторинг',tileSystem:'Система',tileApps:'Застосунки',descShell:'Shell',descFiles:'Огляд · Завантаження · Спільний доступ',descStorage:'Диски · Пули · Стан',descDocker:'Контейнери · Compose',descVms:'Машини · Сховище',descBackup:'Завдання · Історія',descMonitoring:'Логи · Сповіщення · Аудит',descSystem:'Огляд · Оновлення · Користувачі',tabDisks:'Диски',tabRaid:'RAID',tabLuks:'LUKS',tabZfs:'ZFS/Btrfs',tabIscsi:'iSCSI',tabSmart:'SMART',tabSwap:'Swap',tabLvm:'LVM',tabContainer:'Контейнери',tabCompose:'Compose',tabImages:'Образи',tabVolumes:'Томи',tabMachines:'Машини',tabStoragePools:'Пули сховища',tabJobs:'Завдання',tabHistory:'Історія',tabLogs:'Логи',tabAlerts:'Сповіщення',tabAudit:'Аудит',tabOverview:'Огляд',tabUpdates:'Оновлення',tabUsers:'Користувачі',tabNetwork:'Мережа',tabServices:'Сервіси',tabShares:'Спільні ресурси',tabMaintenance:'Обслуговування',tabAdvanced:'Додатково',tabPower:'Живлення'},
+};
+function currentLanguage(){
+  try{return localStorage.getItem(LANGUAGE_KEY)||'de';}catch(e){return'de';}
+}
+function tr(key){
+  const lang=currentLanguage();
+  return (I18N[lang]&&I18N[lang][key])||(I18N.de&&I18N.de[key])||key;
+}
+function languageOptionName(code){
+  const lang=LANGUAGES.find(x=>x.code===code);
+  return lang?lang.name:code;
+}
+function applyLanguage(){
+  const lang=currentLanguage();
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=tr(el.dataset.i18nTitle);});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=tr(el.dataset.i18nPlaceholder);});
+  updateClock();
+  renderTiles();
+  if(currentTile)syncModalLanguage();
+}
+function setLanguage(code){
+  try{localStorage.setItem(LANGUAGE_KEY,I18N[code]?code:'de');}catch(e){}
+  applyLanguage();
+}
+function updateClock(){
+  const el=$('#clock');
+  if(!el)return;
+  const n=new Date();
+  const lang=currentLanguage();
+  const date=new Intl.DateTimeFormat(lang,{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}).format(n);
+  const time=new Intl.DateTimeFormat(lang,{hour:'2-digit',minute:'2-digit'}).format(n);
+  el.textContent=tr('daySuffix')?`${date} – ${time} ${tr('daySuffix')}`:`${date} – ${time}`;
+}
+function openLanguageModal(){
+  const userMenu=$('#user-menu');
+  if(userMenu)userMenu.classList.remove('open');
+  openForm(tr('languageSettings'),'🌐',[
+    {name:'language',label:tr('languageField'),type:'select',value:currentLanguage(),options:LANGUAGES.map(x=>({value:x.code,label:x.name}))},
+  ],d=>{setLanguage(d.language);closeForm();toast(tr('languageSaved'));});
+  const select=$('#f_language');
+  if(select)select.value=currentLanguage();
+}
 const EXPERT_MODE_KEY='runvard_expert_mode';
 function isExpertMode(){
   try{return localStorage.getItem(EXPERT_MODE_KEY)==='1';}catch(e){return false;}
@@ -605,7 +676,7 @@ function setExpertMode(enabled){
   try{localStorage.setItem(EXPERT_MODE_KEY,enabled?'1':'0');}catch(e){}
   applyExpertMode();
   rerenderCurrentModal();
-  toast(enabled?'Expert Mode aktiviert':'Expert Mode deaktiviert');
+  toast(enabled?tr('expertOn'):tr('expertOff'));
 }
 applyExpertMode();
 
@@ -619,13 +690,13 @@ function openForm(title,icon,fields,onSubmit){
   const body=$('#form-body');
   body.innerHTML=fields.map(f=>{
     let inp='';
-    if(f.type==='select') inp=`<select id="f_${f.name}">${(f.options||[]).map(o=>`<option value="${esc(o.value??o)}">${esc(o.label??o)}</option>`).join('')}</select>`;
+    if(f.type==='select') inp=`<select id="f_${f.name}">${(f.options||[]).map(o=>{const value=o.value??o;return`<option value="${esc(value)}" ${String(value)===String(f.value??'')?'selected':''}>${esc(o.label??o)}</option>`;}).join('')}</select>`;
     else if(f.type==='textarea') inp=`<textarea id="f_${f.name}" rows="${f.rows||6}" style="font-family:'JetBrains Mono',monospace">${esc(f.value||'')}</textarea>`;
     else if(f.type==='checkbox') inp=`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="f_${f.name}" ${f.value?'checked':''} style="width:auto"> ${esc(f.label)}</label>`;
     else inp=`<input id="f_${f.name}" type="${f.type||'text'}" value="${esc(f.value||'')}" placeholder="${esc(f.placeholder||'')}">`;
     if(f.type==='checkbox') return `<div class="form-field">${inp}${f.hint?`<div class="hint">${f.hint}</div>`:''}</div>`;
     return `<div class="form-field"><label>${esc(f.label)}</label>${inp}${f.hint?`<div class="hint">${f.hint}</div>`:''}</div>`;
-  }).join('')+`<div class="form-actions"><button class="btn ghost" onclick="closeForm()">Abbrechen</button><button class="btn" id="form-go">Speichern</button></div>`;
+  }).join('')+`<div class="form-actions"><button class="btn ghost" onclick="closeForm()">${esc(tr('cancel'))}</button><button class="btn" id="form-go">${esc(tr('save'))}</button></div>`;
   formSubmitFn=()=>{const d={};fields.forEach(f=>{const el=$('#f_'+f.name);if(el)d[f.name]=f.type==='checkbox'?el.checked:el.value;});onSubmit(d);};
   $('#form-go').onclick=formSubmitFn;
   $('#form-overlay').classList.add('open');
@@ -673,11 +744,11 @@ function typedConfirm(title,msg,phrase,cb){
   $('#form-head').innerHTML=`<span>⚠</span> ${esc(title)}`;
   $('#form-body').innerHTML=`
     <p class="typed-confirm-copy">${esc(msg)}</p>
-    <div class="typed-confirm-hint">Type <span class="mono">${esc(phrase)}</span> to continue.</div>
+    <div class="typed-confirm-hint">${esc(tr('typeToContinue'))} <span class="mono">${esc(phrase)}</span></div>
     <input id="typed-confirm-input" class="mono" autocomplete="off" placeholder="${esc(phrase)}">
     <div class="form-actions">
-      <button class="btn ghost" onclick="closeForm()">Cancel</button>
-      <button class="btn danger" id="typed-confirm-ok" disabled>Continue</button>
+      <button class="btn ghost" onclick="closeForm()">${esc(tr('cancel'))}</button>
+      <button class="btn danger" id="typed-confirm-ok" disabled>${esc(tr('continue'))}</button>
     </div>`;
   $('#form-overlay').classList.add('open');
   const inp=$('#typed-confirm-input'),ok=$('#typed-confirm-ok');
@@ -704,16 +775,7 @@ function doSearch(q){
 function resetSearch(){searchEnabled=false;$('#modal-search').classList.remove('open');$('#search-btn').classList.remove('active');const si=$('#search-input');if(si){si.value='';si.dispatchEvent(new Event('input',{bubbles:true}));}}
 
 // ═══ Clock & Sys-Info ═══
-setInterval(()=>{
-  const n=new Date();
-  const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-  const d=String(n.getDate()).padStart(2,'0');
-  const m=String(n.getMonth()+1).padStart(2,'0');
-  const y=n.getFullYear();
-  const h=String(n.getHours()).padStart(2,'0');
-  const mi=String(n.getMinutes()).padStart(2,'0');
-  $('#clock').textContent=days[n.getDay()]+', '+d+'.'+m+'.'+y+' – '+h+':'+mi+' Uhr';
-},1000);
+setInterval(updateClock,1000);
 api('/system/info').then(i=>{$('#hostname').textContent=i.hostname;const u=$('#topbar-user');if(u)u.textContent=i.user||'admin';});
 
 // ── Benutzer-Menü: Status, Login-Schalter, Abmelden ──
@@ -722,8 +784,8 @@ document.addEventListener('click',e=>{const m=$('#user-menu');if(m&&m.classList.
 async function loadAuthStatus(){
   try{
     const s=await api('/auth/status');
-    const tu=$('#topbar-user'); if(tu) tu.textContent=s.user||'Login aus';
-    const h=$('#um-head'); if(h) h.innerHTML=s.user?`Angemeldet als <strong>${esc(s.user)}</strong>`:'Login ist deaktiviert';
+    const tu=$('#topbar-user'); if(tu) tu.textContent=s.user||tr('loginDisabled');
+    const h=$('#um-head'); if(h) h.innerHTML=s.user?`${esc(tr('signedInAs'))} <strong>${esc(s.user)}</strong>`:tr('loginDisabledHead');
     const t=$('#um-login-toggle'); if(t) t.checked=!!s.login_enabled;
     const acc=$('#um-accounts'); if(acc) acc.style.display=(s.role==='admin')?'block':'none';
   }catch(e){}
@@ -735,7 +797,7 @@ async function doLogout(){
 async function toggleLogin(on){
   try{
     await post('/auth/toggle',{enabled:on?'1':'0'});
-    toast(on?'Login aktiviert – beim nächsten Aufruf ist Anmeldung nötig':'Login deaktiviert');
+    toast(on?tr('loginEnabled'):tr('loginDisabled'));
     loadAuthStatus();
   }catch(e){toast('Fehler: '+e.message,'error');const t=$('#um-login-toggle');if(t)t.checked=!on;}
 }
@@ -786,28 +848,37 @@ let _badgeTick=0;setInterval(()=>{if(++_badgeTick%5===0)loadTileBadges();},2000)
 
 // ═══ Tiles ═══
 const TILES=[
- {id:'terminal',name:'Terminal',icon:'💻',color:'#a78bfa',desc:'Shell'},
- {id:'files',name:'Files',icon:'🗂️',color:'#22d3ee',desc:'Browse · Upload · Share'},
- {id:'storage',name:'Storage',icon:'💾',color:'#fbbf24',desc:'Disks · Pools · Health',tabs:['Disks','RAID','LUKS','ZFS/Btrfs','iSCSI','SMART','Swap','LVM']},
- {id:'docker',name:'Docker',icon:'🐳',color:'#60a5fa',badge:'docker',desc:'Container · Compose',tabs:['Container','Compose','Images','Volumes']},
- {id:'vms',name:'VMs',icon:'📦',color:'#c084fc',badge:'vms',desc:'Machines · Storage',tabs:['Machines','Storage pools']},
- {id:'backup',name:'Backup',icon:'☁️',color:'#2dd4bf',badge:'backup',desc:'Jobs · History',tabs:['Jobs','History']},
- {id:'monitoring',name:'Monitoring',icon:'📈',color:'#9ca3af',badge:'monitoring',desc:'Logs · Alerts · Audit',tabs:['Logs','Alerts','Audit']},
- {id:'system',name:'System',icon:'🔧',color:'#9ca3af',badge:'system',desc:'Overview · Updates · Users',tabs:['Overview','Updates','Users','Network','Services','Shares','Maintenance','Advanced','Power']},
- {id:'apps',name:'Apps',icon:'🧩',color:'#f472b6',badge:'apps',desc:''},
+ {id:'terminal',nameKey:'tileTerminal',icon:'💻',color:'#a78bfa',descKey:'descShell'},
+ {id:'files',nameKey:'tileFiles',icon:'🗂️',color:'#22d3ee',descKey:'descFiles'},
+ {id:'storage',nameKey:'tileStorage',icon:'💾',color:'#fbbf24',descKey:'descStorage',tabs:['Disks','RAID','LUKS','ZFS/Btrfs','iSCSI','SMART','Swap','LVM'],tabKeys:['tabDisks','tabRaid','tabLuks','tabZfs','tabIscsi','tabSmart','tabSwap','tabLvm']},
+ {id:'docker',nameKey:'tileDocker',icon:'🐳',color:'#60a5fa',badge:'docker',descKey:'descDocker',tabs:['Container','Compose','Images','Volumes'],tabKeys:['tabContainer','tabCompose','tabImages','tabVolumes']},
+ {id:'vms',nameKey:'tileVms',icon:'📦',color:'#c084fc',badge:'vms',descKey:'descVms',tabs:['Machines','Storage pools'],tabKeys:['tabMachines','tabStoragePools']},
+ {id:'backup',nameKey:'tileBackup',icon:'☁️',color:'#2dd4bf',badge:'backup',descKey:'descBackup',tabs:['Jobs','History'],tabKeys:['tabJobs','tabHistory']},
+ {id:'monitoring',nameKey:'tileMonitoring',icon:'📈',color:'#9ca3af',badge:'monitoring',descKey:'descMonitoring',tabs:['Logs','Alerts','Audit'],tabKeys:['tabLogs','tabAlerts','tabAudit']},
+ {id:'system',nameKey:'tileSystem',icon:'🔧',color:'#9ca3af',badge:'system',descKey:'descSystem',tabs:['Overview','Updates','Users','Network','Services','Shares','Maintenance','Advanced','Power'],tabKeys:['tabOverview','tabUpdates','tabUsers','tabNetwork','tabServices','tabShares','tabMaintenance','tabAdvanced','tabPower']},
+ {id:'apps',nameKey:'tileApps',icon:'🧩',color:'#f472b6',badge:'apps',descKey:''},
 ];
-TILES.forEach((t,i)=>{
-  const el=document.createElement('div');
-  el.className='tile';
-  el.style.animationDelay=(i*.03)+'s';
-  el.dataset.id=t.id;
-  el.innerHTML=`
-    ${t.badge?`<span class="tile-badge" id="badge-${t.id}"></span>`:''}
-    <div class="tile-icon" style="background:${t.color}22">${t.icon}</div>
-    <div class="tile-name">${t.name}</div>`;
-  el.onclick=()=>openModal(t);
-  $('#tiles').appendChild(el);
-});
+function tileName(tile){return tr(tile.nameKey);}
+function tileDesc(tile){return tile.descKey?tr(tile.descKey):'';}
+function tabLabel(tile,tab,index){return tile.tabKeys&&tile.tabKeys[index]?tr(tile.tabKeys[index]):tab;}
+function renderTiles(){
+  const tilesEl=$('#tiles');
+  if(!tilesEl)return;
+  tilesEl.innerHTML='';
+  TILES.forEach((t,i)=>{
+    const el=document.createElement('div');
+    el.className='tile';
+    el.style.animationDelay=(i*.03)+'s';
+    el.dataset.id=t.id;
+    el.innerHTML=`
+      ${t.badge?`<span class="tile-badge" id="badge-${t.id}"></span>`:''}
+      <div class="tile-icon" style="background:${t.color}22">${t.icon}</div>
+      <div class="tile-name">${esc(tileName(t))}</div>`;
+    el.onclick=()=>openModal(t);
+    tilesEl.appendChild(el);
+  });
+}
+renderTiles();
 
 // Load live badge data
 let _systemUpdateBadgeNext=0,_systemUpdateBadgeHasUpdates=false;
@@ -883,13 +954,15 @@ loadTileBadges();
 
 // ═══ Modal ═══
 let currentTile=null,currentTab=null,termWs=null;
+applyLanguage();
+loadTileBadges();
 function openModal(tile){
   currentTile=tile;currentTab=tile.tabs?tile.tabs[0]:null;resetSearch();
-  $('#modal-title').innerHTML=`<span>${tile.icon}</span> ${esc(tile.name)}`;
+  $('#modal-title').innerHTML=`<span>${tile.icon}</span> ${esc(tileName(tile))}`;
   const tabsEl=$('#modal-tabs');tabsEl.innerHTML='';
   const hasSearch=['services','docker','vms','system'].includes(tile.id);
   $('#search-btn').style.display=hasSearch?'flex':'none';
-  if(tile.tabs){tile.tabs.forEach((tab,i)=>{const tb=document.createElement('div');tb.className='modal-tab'+(i===0?' active':'');tb.dataset.tab=tab;tb.textContent=tab;tb.onclick=()=>{currentTab=tab;document.querySelectorAll('.modal-tab').forEach(x=>x.classList.remove('active'));tb.classList.add('active');resetSearch();renderTab(tile.id,tab);};tabsEl.appendChild(tb);});applySystemUpdateTabBadge();renderTab(tile.id,currentTab);}
+  if(tile.tabs){tile.tabs.forEach((tab,i)=>{const tb=document.createElement('div');tb.className='modal-tab'+(i===0?' active':'');tb.dataset.tab=tab;tb.textContent=tabLabel(tile,tab,i);tb.onclick=()=>{currentTab=tab;document.querySelectorAll('.modal-tab').forEach(x=>x.classList.remove('active'));tb.classList.add('active');resetSearch();renderTab(tile.id,tab);};tabsEl.appendChild(tb);});applySystemUpdateTabBadge();renderTab(tile.id,currentTab);}
   else renderTab(tile.id,null);
   if(tile.id==='docker'){
     const link=document.createElement('button');
@@ -901,6 +974,15 @@ function openModal(tile){
     tabsEl.appendChild(link);
   }
   $('#overlay').classList.add('open');
+}
+function syncModalLanguage(){
+  if(!currentTile)return;
+  $('#modal-title').innerHTML=`<span>${currentTile.icon}</span> ${esc(tileName(currentTile))}`;
+  document.querySelectorAll('#modal-tabs .modal-tab[data-tab]').forEach(el=>{
+    const index=(currentTile.tabs||[]).indexOf(el.dataset.tab);
+    if(index>=0)el.textContent=tabLabel(currentTile,el.dataset.tab,index);
+  });
+  loadAuthStatus();
 }
 function openTileById(id){const t=TILES.find(x=>x.id===id);if(t)openModal(t);}
 function closeModal(){$('#overlay').classList.remove('open');if(termWs){termWs.close();termWs=null;}if(typeof window._termDispose==='function'){try{window._termDispose();}catch(e){}}if(typeof _dockerStatsTimer!=='undefined'&&_dockerStatsTimer){clearInterval(_dockerStatsTimer);_dockerStatsTimer=null;}if(typeof destroyHistChart==='function')destroyHistChart();if(typeof _vncRfb!=='undefined'&&_vncRfb){try{_vncRfb.disconnect();}catch(e){}_vncRfb=null;}}
