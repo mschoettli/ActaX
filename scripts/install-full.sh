@@ -347,6 +347,10 @@ fi
 # ─────────────────────────── 3. Python-Umgebung ───────────────────────────
 phase "Python-Umgebung einrichten"
 PIP="$INSTALL_DIR/venv/bin/pip"
+if [ -d "$INSTALL_DIR/venv" ] && ! "$PIP" --version >/dev/null 2>&1; then
+  warn "Bestehende Python-Umgebung ist nicht mehr gültig und wird neu erstellt."
+  rm -rf "$INSTALL_DIR/venv"
+fi
 if [ ! -x "$INSTALL_DIR/venv/bin/python" ]; then
   run_spin "Virtuelle Umgebung anlegen …" python3 -m venv "$INSTALL_DIR/venv" \
     || die "Konnte keine Python-Umgebung anlegen (ist python3-venv installiert?)."
