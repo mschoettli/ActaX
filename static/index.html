@@ -136,6 +136,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .form-field{margin-bottom:16px}
 .form-field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px}
 .form-field .hint{font-size:11px;color:var(--text3);margin-top:4px}
+.expert-mode .form-field .hint{display:none}
 .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 
 /* ── Confirm modal ── */
@@ -282,6 +283,8 @@ pre.logbox{background:#0a0810;padding:16px;border-radius:11px;font-family:'JetBr
 .nx-view-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:linear-gradient(135deg,rgba(122,74,255,.12),rgba(6,182,212,.06));border:1px solid var(--border-accent);border-radius:14px;padding:16px 18px;margin-bottom:16px}
 .nx-view-intro h3{font-size:15px;font-weight:700;margin-bottom:5px;color:var(--text)}
 .nx-view-intro p{font-size:12px;color:var(--text2);line-height:1.5;max-width:720px}
+.nx-expert-actions{margin-bottom:16px}
+.expert-mode .nx-action-card>p.nx-action-sub{display:none}
 .nx-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
 .nx-summary-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;min-width:0}
 .nx-summary-card .k{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
@@ -454,6 +457,10 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
           <span>Login-Seite</span>
           <label class="um-switch"><input type="checkbox" id="um-login-toggle" onchange="toggleLogin(this.checked)"><span class="um-slider"></span></label>
         </div>
+        <div class="um-row">
+          <span>Expert Mode</span>
+          <label class="um-switch"><input type="checkbox" id="um-expert-toggle" onchange="setExpertMode(this.checked)"><span class="um-slider"></span></label>
+        </div>
         <button id="um-accounts" onclick="accountsManage()" style="display:none;width:100%;text-align:left;background:transparent;border:none;border-top:.5px solid var(--border);color:var(--text2);padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit">👥 ActaX-Konten</button>
         <button class="um-logout" onclick="doLogout()">Abmelden</button>
       </div>
@@ -562,6 +569,29 @@ const post=(p,d)=>{const fd=new FormData();for(const k in d)fd.append(k,d[k]);re
 const fmtBytes=b=>{if(!b)return'0 B';const u=['B','KB','MB','GB','TB'],i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(1)+' '+u[i];};
 const fmtUptime=s=>{const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);return`${d}d ${h}h ${m}m`;};
 const esc=s=>(s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const EXPERT_MODE_KEY='actax_expert_mode';
+function isExpertMode(){
+  try{return localStorage.getItem(EXPERT_MODE_KEY)==='1';}catch(e){return false;}
+}
+function syncExpertToggle(){
+  const t=$('#um-expert-toggle');
+  if(t)t.checked=isExpertMode();
+}
+function rerenderCurrentModal(){
+  const overlay=$('#overlay');
+  if(currentTile&&overlay&&overlay.classList.contains('open'))renderTab(currentTile.id,currentTab);
+}
+function applyExpertMode(){
+  document.body.classList.toggle('expert-mode',isExpertMode());
+  syncExpertToggle();
+}
+function setExpertMode(enabled){
+  try{localStorage.setItem(EXPERT_MODE_KEY,enabled?'1':'0');}catch(e){}
+  applyExpertMode();
+  rerenderCurrentModal();
+  toast(enabled?'Expert Mode aktiviert':'Expert Mode deaktiviert');
+}
+applyExpertMode();
 
 // ═══ Toast ═══
 function toast(msg,type='success'){const t=document.createElement('div');t.className='toast '+type;t.innerHTML='<span class="toast-dot"></span><span class="toast-msg">'+esc(msg)+'</span>';$('#toasts').appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3200);}
@@ -619,6 +649,7 @@ function advancedDetails(title,html,open){
   return `<details class="nx-advanced" ${open?'open':''}><summary>${esc(title)}</summary><div class="nx-advanced-body">${html}</div></details>`;
 }
 function viewIntro(title,copy,actionHtml){
+  if(isExpertMode())return actionHtml?`<div class="nx-expert-actions nx-action-row">${actionHtml}</div>`:'';
   return `<div class="nx-view-intro"><div><h3>${esc(title)}</h3><p>${esc(copy)}</p></div><div class="nx-action-row">${actionHtml||''}</div></div>`;
 }
 function typedConfirm(title,msg,phrase,cb){
@@ -808,14 +839,14 @@ async function loadTileBadges(){
 loadTileBadges();
 
 // ═══ Modal ═══
-let currentTile=null,termWs=null;
+let currentTile=null,currentTab=null,termWs=null;
 function openModal(tile){
-  currentTile=tile;resetSearch();
+  currentTile=tile;currentTab=tile.tabs?tile.tabs[0]:null;resetSearch();
   $('#modal-title').innerHTML=`<span>${tile.icon}</span> ${esc(tile.name)}`;
   const tabsEl=$('#modal-tabs');tabsEl.innerHTML='';
   const hasSearch=['services','docker','vms','system'].includes(tile.id);
   $('#search-btn').style.display=hasSearch?'flex':'none';
-  if(tile.tabs){tile.tabs.forEach((tab,i)=>{const tb=document.createElement('div');tb.className='modal-tab'+(i===0?' active':'');tb.textContent=tab;tb.onclick=()=>{document.querySelectorAll('.modal-tab').forEach(x=>x.classList.remove('active'));tb.classList.add('active');resetSearch();renderTab(tile.id,tab);};tabsEl.appendChild(tb);});renderTab(tile.id,tile.tabs[0]);}
+  if(tile.tabs){tile.tabs.forEach((tab,i)=>{const tb=document.createElement('div');tb.className='modal-tab'+(i===0?' active':'');tb.textContent=tab;tb.onclick=()=>{currentTab=tab;document.querySelectorAll('.modal-tab').forEach(x=>x.classList.remove('active'));tb.classList.add('active');resetSearch();renderTab(tile.id,tab);};tabsEl.appendChild(tb);});renderTab(tile.id,currentTab);}
   else renderTab(tile.id,null);
   if(tile.id==='docker'){
     const link=document.createElement('button');
