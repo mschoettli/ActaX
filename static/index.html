@@ -87,6 +87,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .tile-badge.red{display:flex;background:#ef4444}
 .tile-badge.gray{display:flex;background:rgba(100,100,120,.8);color:rgba(255,255,255,.6)}
 .tile-badge.blue{display:flex;background:#60a5fa}
+.tile-badge.dot-only{top:2px;right:2px;min-width:8px;width:8px;height:8px;border-radius:50%;padding:0;font-size:0;box-shadow:0 0 8px rgba(239,68,68,.45)}
 @keyframes tileIn{to{opacity:1;transform:translateY(0)}}
 .tile:hover{background:rgba(122,74,255,.07);border-color:rgba(122,74,255,.3);transform:translateY(-1px)}
 .tile-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -776,7 +777,7 @@ const TILES=[
  {id:'vms',name:'VMs',icon:'📦',color:'#c084fc',badge:'vms',desc:'Machines · Storage',tabs:['Machines','Storage pools']},
  {id:'backup',name:'Backup',icon:'☁️',color:'#2dd4bf',badge:'backup',desc:'Jobs · History',tabs:['Jobs','History']},
  {id:'monitoring',name:'Monitoring',icon:'📈',color:'#9ca3af',badge:'monitoring',desc:'Logs · Alerts · Audit',tabs:['Logs','Alerts','Audit']},
- {id:'system',name:'System',icon:'🔧',color:'#9ca3af',desc:'Overview · Updates · Users',tabs:['Overview','Updates','Users','Network','Services','Shares','Maintenance','Advanced','Power']},
+ {id:'system',name:'System',icon:'🔧',color:'#9ca3af',badge:'system',desc:'Overview · Updates · Users',tabs:['Overview','Updates','Users','Network','Services','Shares','Maintenance','Advanced','Power']},
  {id:'apps',name:'Apps',icon:'🧩',color:'#f472b6',badge:'apps',desc:''},
 ];
 TILES.forEach((t,i)=>{
@@ -793,6 +794,21 @@ TILES.forEach((t,i)=>{
 });
 
 // Load live badge data
+let _systemUpdateBadgeNext=0,_systemUpdateBadgeHasUpdates=false;
+function applySystemUpdateBadge(){
+  const el=$('#badge-system');
+  if(!el)return;
+  el.textContent='';
+  el.className=_systemUpdateBadgeHasUpdates?'tile-badge red dot-only':'tile-badge';
+}
+async function refreshSystemUpdateBadge(){
+  const now=Date.now();
+  if(now<_systemUpdateBadgeNext){applySystemUpdateBadge();return;}
+  _systemUpdateBadgeNext=now+(30*60*1000);
+  const u=await api('/sysmgr/updates');
+  _systemUpdateBadgeHasUpdates=(u.updates||0)>0;
+  applySystemUpdateBadge();
+}
 async function loadTileBadges(){
   try{
     const dc=await api('/docker/containers');
@@ -835,6 +851,7 @@ async function loadTileBadges(){
       el.className='tile-badge '+(active===0?'green':'red');
     }
   }catch(e){}
+  try{await refreshSystemUpdateBadge();}catch(e){}
 }
 loadTileBadges();
 
