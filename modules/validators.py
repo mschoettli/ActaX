@@ -18,7 +18,7 @@ SENSITIVE_HOST_PATHS = {
     "/",
     "/etc",
     "/root",
-    "/opt/nexus",
+    "/opt/actax",
     "/var/run/docker.sock",
     "/var/lib/docker",
     "/var/lib/libvirt",
@@ -88,7 +88,7 @@ def is_blocked_path(path: str) -> bool:
 
 def is_readonly_path(path: str) -> bool:
     """
-    Check whether a path is read-only in Nexus.
+    Check whether a path is read-only in ActaX.
 
     Args:
     -----
@@ -98,7 +98,7 @@ def is_readonly_path(path: str) -> bool:
     Returns:
     --------
         bool:
-            True when Nexus must not write to the path.
+            True when ActaX must not write to the path.
     """
     return is_under(path, READONLY_PATHS)
 
@@ -145,7 +145,7 @@ def guard_write_path(path: str) -> str:
     Raises:
     -------
         PermissionError:
-            Raised when Nexus must not write to the path.
+            Raised when ActaX must not write to the path.
     """
     resolved = guard_read_path(path)
     if is_readonly_path(resolved):

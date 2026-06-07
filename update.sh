@@ -11,11 +11,12 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-INSTALL="/opt/nexus"
+INSTALL="/opt/actax"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${INSTALL}/data/nexus.env"
+ENV_FILE="${INSTALL}/data/actax.env"
+VERSION_FILE="${INSTALL}/data/actax.version"
 
-echo -e "${CYAN}Updating Nexus...${NC}"
+echo -e "${CYAN}Updating ActaX...${NC}"
 
 if [ ! -f "$ENV_FILE" ]; then
   echo -e "${RED}Missing ${ENV_FILE}. Run install.sh first.${NC}"
@@ -36,23 +37,30 @@ cp -f "$SRC/requirements.txt" "$INSTALL/requirements.txt"
 cp -f "$SRC/static/index.html" "$INSTALL/static/index.html"
 [ -f "$SRC/static/login.html" ] && cp -f "$SRC/static/login.html" "$INSTALL/static/login.html"
 cp -f "$SRC/modules/"*.py "$INSTALL/modules/"
+SOURCE_COMMIT="${ACTAX_SOURCE_COMMIT:-}"
+if [ -z "$SOURCE_COMMIT" ] && [ -d "$SRC/.git" ] && command -v git >/dev/null 2>&1; then
+  SOURCE_COMMIT="$(git -C "$SRC" rev-parse HEAD 2>/dev/null || true)"
+fi
+if [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+  printf '%s\n' "$SOURCE_COMMIT" > "$VERSION_FILE"
+fi
 
 "$INSTALL/venv/bin/pip" install -q -r "$INSTALL/requirements.txt"
 "$INSTALL/venv/bin/pip" install -q libvirt-python==10.7.0 2>/dev/null || true
 
 echo -e "${CYAN}Restarting service...${NC}"
-systemctl restart nexus
+systemctl restart actax
 sleep 3
 
 # shellcheck source=/dev/null
 . "$ENV_FILE"
 # Health-Check ohne Auth: die API nutzt Cookie-Sessions (kein HTTP-Basic),
 # daher die anmeldefreie Login-Seite prüfen.
-HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 "http://127.0.0.1:${NEXUS_PORT:-8080}/login")
+HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 "http://127.0.0.1:${ACTAX_PORT:-8080}/login")
 
 if [ "$HTTP" = "200" ] || [ "$HTTP" = "302" ]; then
   echo -e "${GREEN}Update succeeded. Dienst antwortet (HTTP ${HTTP}).${NC}"
 else
   echo -e "${RED}Update failed. Dienst antwortet nicht (HTTP ${HTTP}).${NC}"
-  journalctl -u nexus -n 20 --no-pager
+  journalctl -u actax -n 20 --no-pager
 fi

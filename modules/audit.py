@@ -14,14 +14,14 @@ SECRET_KEYS = {"password", "token", "confirm_token", "secret", "key"}
 
 def data_dir() -> str:
     """
-    Return the configured Nexus data directory.
+    Return the configured ActaX data directory.
 
     Returns:
     --------
         str:
             Data directory.
     """
-    return os.environ.get("NEXUS_DATA_DIR", "/opt/nexus/data")
+    return os.environ.get("ACTAX_DATA_DIR", "/opt/actax/data")
 
 
 def audit_log() -> str:

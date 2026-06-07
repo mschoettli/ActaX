@@ -193,7 +193,7 @@ def remove_ssh_key(user: str, key: str):
 
 # --- SSL-Zertifikate ---
 
-CERT_DIR = "/opt/nexus/data/certs"
+CERT_DIR = "/opt/actax/data/certs"
 
 
 def list_certificates():
@@ -225,7 +225,7 @@ def generate_self_signed(common_name: str, days=365):
 import re as _re
 
 _LINUX_NAME = _re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")
-_SUDOERS_DROPIN = "/etc/sudoers.d/nexus-%s"
+_SUDOERS_DROPIN = "/etc/sudoers.d/actax-%s"
 
 
 def _valid_name(name):

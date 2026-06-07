@@ -1,11 +1,11 @@
-"""Nexus-Anwendungskonten (getrennt von OS-Benutzern): Store mit Rollen + Hash-Passwörtern."""
+"""ActaX-Anwendungskonten (getrennt von OS-Benutzern): Store mit Rollen + Hash-Passwörtern."""
 import os
 import json
 import hmac
 import hashlib
 import secrets
 
-STORE = "/opt/nexus/data/users.json"
+STORE = "/opt/actax/data/users.json"
 ROLES = ("admin", "readonly")
 
 

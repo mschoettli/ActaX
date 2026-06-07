@@ -1,5 +1,5 @@
 """
-Nexus - Server Panel
+ActaX - Server Panel
 Haupt-Anwendung: FastAPI mit allen Routen, Auth und WebSocket-Terminal.
 """
 import os
@@ -22,7 +22,7 @@ from modules import (system, terminal, files, storage, docker_mgr, services,
                      vms, backup, shares, network, security, monitoring,
                      system_mgr, apps, dashboard, metrics, accounts, audit)
 
-app = FastAPI(title="Nexus", docs_url=None, redoc_url=None)
+app = FastAPI(title="ActaX", docs_url=None, redoc_url=None)
 http_basic = HTTPBasic()
 
 
@@ -56,8 +56,8 @@ try:
 except Exception:
     pass
 
-NEXUS_USER = os.environ.get("NEXUS_USER", "admin")
-NEXUS_PASS = os.environ.get("NEXUS_PASS", "nexus")
+ACTAX_USER = os.environ.get("ACTAX_USER", "admin")
+ACTAX_PASS = os.environ.get("ACTAX_PASS", "actax")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ============ Auth: Session-Cookies + Login an/aus ============
@@ -65,7 +65,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 SECRET_FILE = os.path.join(DATA_DIR, "secret.key")
 AUTH_CFG_FILE = os.path.join(DATA_DIR, "auth.json")
-COOKIE_NAME = "nexus_session"
+COOKIE_NAME = "actax_session"
 SESSION_TTL = 8 * 3600              # 8 Stunden
 SESSION_TTL_REMEMBER = 30 * 86400   # 30 Tage
 
@@ -207,8 +207,8 @@ def api_login(request: Request, username: str = Form(...),
     if not _rate_ok(ip):
         raise HTTPException(status_code=429, detail="Too many attempts")
     role = accounts.verify(username, password)
-    if not role and secrets.compare_digest(username, NEXUS_USER) \
-            and secrets.compare_digest(password, NEXUS_PASS):
+    if not role and secrets.compare_digest(username, ACTAX_USER) \
+            and secrets.compare_digest(password, ACTAX_PASS):
         role = "admin"
     if not role:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -243,7 +243,7 @@ def api_auth_toggle(enabled: str = Form(...), user: str = Depends(auth)):
     return {"ok": True, "login_enabled": login_enabled()}
 
 
-# ============ Nexus-Konten (RBAC) ============
+# ============ ActaX-Konten (RBAC) ============
 
 @app.get("/api/accounts")
 def accounts_list(user: str = Depends(require_admin)):
@@ -277,7 +277,7 @@ def accounts_delete(username: str = Form(...), user: str = Depends(require_admin
 def btop_page(user: str = Depends(auth)):
     return """<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>btop – Nexus</title>
+<title>btop – ActaX</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
 <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -326,7 +326,7 @@ const ws=new WebSocket(proto+'://'+location.host+'/ws/btop');
 ws.onopen=()=>{ws.send(JSON.stringify({type:'resize',rows:term.rows,cols:term.cols}));term.focus();};
 ws.onmessage=e=>term.write(e.data);
 ws.onclose=ev=>{
-  if(ev.code===1008)showMsg('Kein Zugriff. Bitte in Nexus anmelden – Konten mit „Nur-Lesen" können den Monitor nicht öffnen.');
+  if(ev.code===1008)showMsg('Kein Zugriff. Bitte in ActaX anmelden – Konten mit „Nur-Lesen" können den Monitor nicht öffnen.');
   else showMsg('Sitzung beendet. (Monitor geschlossen oder Verbindung getrennt.)');
 };
 term.onData(d=>{if(ws.readyState===1)ws.send(JSON.stringify({type:'input',data:d}));});
@@ -1256,6 +1256,11 @@ def sysmgr_updates(user: str = Depends(auth)):
 @app.get("/api/sysmgr/upgradable")
 def sysmgr_upgradable(user: str = Depends(auth)):
     return system_mgr.list_upgradable()
+
+
+@app.get("/api/sysmgr/actax-release")
+def sysmgr_actax_release(user: str = Depends(auth)):
+    return system_mgr.actax_release_status()
 
 
 @app.post("/api/sysmgr/updates/apply")

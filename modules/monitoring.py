@@ -4,8 +4,8 @@ import json
 import time
 import subprocess
 
-ALERT_CONFIG = "/opt/nexus/data/alerts.json"
-ALERT_HISTORY = "/opt/nexus/data/alert_history.json"
+ALERT_CONFIG = "/opt/actax/data/alerts.json"
+ALERT_HISTORY = "/opt/actax/data/alert_history.json"
 
 
 def _run(cmd, timeout=30):
@@ -133,7 +133,7 @@ def _send_email(config: dict, message: str):
         import smtplib
         from email.mime.text import MIMEText
         msg = MIMEText(message)
-        msg["Subject"] = "Nexus Alert"
+        msg["Subject"] = "ActaX Alert"
         msg["From"] = config["user"]
         msg["To"] = config["to"]
         with smtplib.SMTP(config["host"], config["port"], timeout=15) as s:

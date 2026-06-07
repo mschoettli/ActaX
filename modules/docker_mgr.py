@@ -9,7 +9,7 @@ except ImportError:
     HAS_DOCKER = False
 
 _client = None
-COMPOSE_DIR = "/opt/nexus/data/compose"
+COMPOSE_DIR = "/opt/actax/data/compose"
 
 
 def _get_client():

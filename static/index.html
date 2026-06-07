@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexus</title>
+<title>ActaX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
@@ -270,7 +270,7 @@ pre.logbox{background:#0a0810;padding:16px;border-radius:11px;font-family:'JetBr
 .md-split textarea{height:100%;resize:none;font-family:'JetBrains Mono',monospace}
 .md-preview{background:var(--glass);border-radius:11px;padding:16px;overflow:auto}
 
-/* ── Nexus Scrollbars ── */
+/* ── ActaX Scrollbars ── */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(139,92,246,.3);border-radius:3px}
@@ -421,9 +421,9 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
   .time{display:none}
 }
 
-@keyframes nexus-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes actax-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes aurora-shift{0%{background-position:0% 0%}33%{background-position:100% 100%}66%{background-position:0% 100%}100%{background-position:0% 0%}}
-.nexus-bg{background:radial-gradient(ellipse at 20% 50%,#6d28d9,transparent 55%),radial-gradient(ellipse at 80% 20%,#0891b2,transparent 50%),radial-gradient(ellipse at 60% 80%,#1e1b4b,transparent 50%),#050714!important;background-attachment:fixed!important}
+.actax-bg{background:radial-gradient(ellipse at 20% 50%,#6d28d9,transparent 55%),radial-gradient(ellipse at 80% 20%,#0891b2,transparent 50%),radial-gradient(ellipse at 60% 80%,#1e1b4b,transparent 50%),#050714!important;background-attachment:fixed!important}
 .aurora-bg{background:radial-gradient(ellipse at 75% 30%,#c026d3,transparent 50%),radial-gradient(ellipse at 25% 70%,#7c3aed,transparent 55%),radial-gradient(ellipse at 50% 90%,#be123c,transparent 40%),#0d0714!important;background-attachment:fixed!important}
 .sunset-bg{background:radial-gradient(ellipse at 30% 60%,#ea580c,transparent 50%),radial-gradient(ellipse at 70% 30%,#9333ea,transparent 50%),radial-gradient(ellipse at 80% 80%,#be123c,transparent 45%),#0f050a!important;background-attachment:fixed!important}
 .ocean-bg{background:radial-gradient(ellipse at 20% 30%,#0e7490,transparent 55%),radial-gradient(ellipse at 80% 70%,#1d4ed8,transparent 50%),radial-gradient(ellipse at 50% 90%,#164e63,transparent 45%),#020c18!important;background-attachment:fixed!important}
@@ -437,7 +437,7 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
 
 <div class="topbar">
   <div class="logo">
-    NEXUS
+    ActaX
     <span style="font-size:11px;font-weight:400;color:rgba(240,240,255,.3);letter-spacing:0">·</span>
     <span id="hostname" style="font-size:12px;font-weight:400;color:rgba(240,240,255,.4);letter-spacing:0">…</span>
   </div>
@@ -454,7 +454,7 @@ tr.sel-row td{background:rgba(139,92,246,.1);}
           <span>Login-Seite</span>
           <label class="um-switch"><input type="checkbox" id="um-login-toggle" onchange="toggleLogin(this.checked)"><span class="um-slider"></span></label>
         </div>
-        <button id="um-accounts" onclick="accountsManage()" style="display:none;width:100%;text-align:left;background:transparent;border:none;border-top:.5px solid var(--border);color:var(--text2);padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit">👥 Nexus-Konten</button>
+        <button id="um-accounts" onclick="accountsManage()" style="display:none;width:100%;text-align:left;background:transparent;border:none;border-top:.5px solid var(--border);color:var(--text2);padding:10px 14px;font-size:13px;cursor:pointer;font-family:inherit">👥 ActaX-Konten</button>
         <button class="um-logout" onclick="doLogout()">Abmelden</button>
       </div>
     </div>
@@ -692,14 +692,14 @@ async function toggleLogin(on){
   }catch(e){toast('Fehler: '+e.message,'error');const t=$('#um-login-toggle');if(t)t.checked=!on;}
 }
 
-// ── Nexus-Konten (RBAC) ──
+// ── ActaX-Konten (RBAC) ──
 let _accts=[];
 window.accountsManage=async()=>{$('#user-menu').classList.remove('open');await renderAccounts();};
 async function renderAccounts(){
   try{const r=await api('/accounts');_accts=r.users||[];}catch(e){toast('Fehler: '+e.message,'error');return;}
-  $('#form-head').innerHTML='<span>👥</span> Nexus-Konten';
+  $('#form-head').innerHTML='<span>👥</span> ActaX-Konten';
   $('#form-body').innerHTML=`
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">Nexus-Logins – getrennt von den OS-Benutzern. Der Env-Admin bleibt immer gültig. <strong>Nur Lesen</strong> blockiert alle ändernden Aktionen (inkl. Terminal/Shell/Konsole).</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">ActaX-Logins – getrennt von den OS-Benutzern. Der Env-Admin bleibt immer gültig. <strong>Nur Lesen</strong> blockiert alle ändernden Aktionen (inkl. Terminal/Shell/Konsole).</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
       ${_accts.length?_accts.map(u=>`
         <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
@@ -723,7 +723,7 @@ window.acctAddForm=()=>openForm('Konto anlegen','👥',[
 ],async d=>{try{const r=await post('/accounts/add',d);if(r&&r.ok===false){toast(r.error||'Fehler','error');return;}closeForm();toast('Konto angelegt');renderAccounts();}catch(e){toast(e.message,'error');}});
 window.acctPass=username=>openForm('Passwort ändern: '+username,'⚿',[{name:'password',label:'Neues Passwort',type:'password'}],async d=>{try{const r=await post('/accounts/password',{username,password:d.password});if(r&&r.ok===false){toast(r.error||'Fehler','error');return;}closeForm();toast('Passwort geändert');}catch(e){toast(e.message,'error');}});
 window.acctRole=async(username,role)=>{try{const r=await post('/accounts/role',{username,role});if(r&&r.ok===false){toast(r.error||'Fehler','error');return;}toast('Rolle: '+(role==='admin'?'Admin':'Nur Lesen'));renderAccounts();}catch(e){toast(e.message,'error');}};
-window.acctDel=username=>confirmDelete('Konto löschen',`Nexus-Konto "${username}" löschen?`,async()=>{try{await post('/accounts/delete',{username});toast('Konto gelöscht');renderAccounts();}catch(e){toast(e.message,'error');}});
+window.acctDel=username=>confirmDelete('Konto löschen',`ActaX-Konto "${username}" löschen?`,async()=>{try{await post('/accounts/delete',{username});toast('Konto gelöscht');renderAccounts();}catch(e){toast(e.message,'error');}});
 
 loadAuthStatus();
 
@@ -846,7 +846,7 @@ async function renderTab(id,tab){const body=$('#modal-body');body.style.padding=
 }catch(e){body.innerHTML=`<div class="loading">Fehler: ${esc(e.message)}</div>`;}}
 
 // ═══ Terminal ═══
-// Theme: kräftige, gut unterscheidbare ANSI-Farben passend zum Nexus-Akzent
+// Theme: kräftige, gut unterscheidbare ANSI-Farben passend zum ActaX-Akzent
 const TERM_THEME={
   background:'#0a0810',
   foreground:'#e2e8f0',
@@ -1054,7 +1054,7 @@ const QUICKLINKS=[
   {label:'📂 /mnt',path:'/mnt'},
   {label:'📂 /media',path:'/media'},
   {label:'📀 VM-Images',path:'/var/lib/libvirt/images'},
-  {label:'🧩 Apps',path:'/opt/nexus/data/apps'},
+  {label:'🧩 Apps',path:'/opt/actax/data/apps'},
   {label:'🗑 Papierkorb',path:'__trash__'},
 ];
 let currentPath='/root', clipboard=null, viewMode='grid', sortBy='name', selectedFiles=new Set();
@@ -2380,7 +2380,7 @@ window.manageGroups=async name=>{
     fb.insertBefore(info,fb.firstChild);
   },50);
 };
-window.certForm=()=>openForm('SSL-Zertifikat','🔒',[{name:'common_name',label:'Common Name',placeholder:'nexus.local'}],async d=>{await post('/security/certs/generate',d);closeForm();toast('Zertifikat erstellt');renderSecurity($('#modal-body'),'SSL');});
+window.certForm=()=>openForm('SSL-Zertifikat','🔒',[{name:'common_name',label:'Common Name',placeholder:'actax.local'}],async d=>{await post('/security/certs/generate',d);closeForm();toast('Zertifikat erstellt');renderSecurity($('#modal-body'),'SSL');});
 
 // ═══ Monitoring ═══
 async function renderMonitoring(body,tab){
@@ -2402,7 +2402,7 @@ async function renderMonitoring(body,tab){
        <option value="info">Info+</option>
        <option value="debug">Debug+</option>
      </select>
-     <input id="log-unit" class="nx-search" placeholder="Unit (z. B. nexus)" style="width:150px" onkeydown="if(event.key==='Enter')loadLog()">
+     <input id="log-unit" class="nx-search" placeholder="Unit (z. B. actax)" style="width:150px" onkeydown="if(event.key==='Enter')loadLog()">
      <input id="log-grep" class="nx-search" placeholder="Volltext…" style="width:150px" onkeydown="if(event.key==='Enter')loadLog()">
      <select id="log-lines" onchange="loadLog()" style="max-width:120px">
        <option value="200">200 Zeilen</option>
@@ -2978,7 +2978,7 @@ window.appInstallForm=async id=>{
   try{
     const a=await api('/apps/get?app_id='+encodeURIComponent(id));
     openForm('Installieren: '+a.name,'🧩',[
-      {name:'content',label:'docker-compose.yml',type:'textarea',rows:14,value:a.compose,hint:'Ports, Volumes und Env-Variablen können angepasst werden. Daten landen in /opt/nexus/data/apps/'+a.id+'/'},
+      {name:'content',label:'docker-compose.yml',type:'textarea',rows:14,value:a.compose,hint:'Ports, Volumes und Env-Variablen können angepasst werden. Daten landen in /opt/actax/data/apps/'+a.id+'/'},
     ],async d=>{
       closeForm();
       // Inline-Indikator in Modal-Header
@@ -3050,7 +3050,7 @@ window.appAct=async(id,action)=>{
 };
 
 window.appUninstall=(id,name)=>confirmDelete('App deinstallieren',
-  `"${name}" deinstallieren? Container & Netzwerk werden entfernt. Deine Daten in /opt/nexus/data/apps/${id}/ bleiben erhalten.`,
+  `"${name}" deinstallieren? Container & Netzwerk werden entfernt. Deine Daten in /opt/actax/data/apps/${id}/ bleiben erhalten.`,
   async()=>{
     toast('Deinstalliere…');
     try{
@@ -3229,7 +3229,7 @@ window.dashCompose=async id=>{
 window.dashFiles=id=>{
   document.querySelector('.dash-ctx')?.remove();
   openModal({id:'files',name:'Dateien',icon:'🗂️',color:'#22d3ee',desc:'Explorer'});
-  currentPath='/opt/nexus/data/apps/'+id;
+  currentPath='/opt/actax/data/apps/'+id;
   renderFiles($('#modal-body'));
 };
 window.dashToggleUrl=async(id,show)=>{
@@ -3285,9 +3285,9 @@ window.dashAutoAdd=async(appId,appName,appIcon,port)=>{
 loadDashboard();
 setInterval(loadDashboard,10000);
 
-const BG_KEY='nexus_bg';
+const BG_KEY='actax_bg';
 const BG_PRESETS=[
-  {label:'Nexus',    anim:'nexus-bg',   prev:'135deg,#6d28d9,#050714,#0891b2'},
+  {label:'ActaX',    anim:'actax-bg',   prev:'135deg,#6d28d9,#050714,#0891b2'},
   {label:'Nebula',   anim:'aurora-bg',  prev:'135deg,#c026d3,#0d0714,#7c3aed'},
   {label:'Sunset',   anim:'sunset-bg',  prev:'135deg,#ea580c,#0f050a,#9333ea'},
   {label:'Ocean',    anim:'ocean-bg',   prev:'135deg,#0e7490,#020c18,#1d4ed8'},
@@ -3300,7 +3300,7 @@ const BG_PRESETS=[
 function applyBg(value, save=true){
   const b=document.body;
   // Alte Animationsklassen entfernen
-  b.classList.remove('nexus-bg','aurora-bg','sunset-bg','ocean-bg','forest-bg','flame-bg','ice-bg','galaxy-bg');
+  b.classList.remove('actax-bg','aurora-bg','sunset-bg','ocean-bg','forest-bg','flame-bg','ice-bg','galaxy-bg');
   b.style.animation='';
   b.style.backgroundAttachment='fixed';
   if(value.startsWith('anim:')){
@@ -3333,7 +3333,7 @@ function applyImageFile(inp){
   r.onload=e=>{applyBg('image:'+e.target.result);closePanel();toast('Hintergrund gesetzt');};
   r.readAsDataURL(inp.files[0]);
 }
-function resetBg(){applyBg('anim:nexus-bg');toast('Standard wiederhergestellt');}
+function resetBg(){applyBg('anim:actax-bg');toast('Standard wiederhergestellt');}
 
 function updatePresetActive(value){
   document.querySelectorAll('.bg-preset').forEach((el,i)=>{
@@ -3405,7 +3405,7 @@ async function renderStorage(body,tab){
     const [d,mounts]=await Promise.all([api('/storage/devices'),api('/system/disks').catch(()=>[])]);
     const mounted=(mounts||[]).filter(x=>x.total);
     const root=mounted.find(x=>x.mountpoint==='/')||mounted[0];
-    body.innerHTML=viewIntro('Storage overview','Set up new disks from here. The system disk is locked so beginners do not accidentally erase Nexus.',`<button class="btn" onclick="renderStorage($('#modal-body'),'SMART')">Check health</button>`)
+    body.innerHTML=viewIntro('Storage overview','Set up new disks from here. The system disk is locked so beginners do not accidentally erase ActaX.',`<button class="btn" onclick="renderStorage($('#modal-body'),'SMART')">Check health</button>`)
       +`<div class="nx-summary-grid">
         ${summaryCard('Disks',(d.devices||[]).length,'Physical devices found')}
         ${summaryCard('Mounted volumes',mounted.length,'Usable filesystems')}
@@ -3539,7 +3539,7 @@ window.appInstallForm=async id=>{
       <div class="nx-card-inner">
         <div class="nx-action-title">${esc(a.name)}</div>
         <p class="nx-action-sub">${esc(a.desc||'Install this app with the default settings.')}</p>
-        <div class="nx-kv">${cardMetric('Port',a.port||'Automatic')}${cardMetric('Data folder','/opt/nexus/data/apps/'+esc(a.id))}</div>
+        <div class="nx-kv">${cardMetric('Port',a.port||'Automatic')}${cardMetric('Data folder','/opt/actax/data/apps/'+esc(a.id))}</div>
       </div>
       ${advancedDetails('Advanced compose file',`<textarea id="app-compose-content" rows="14" style="font-family:'JetBrains Mono',monospace">${esc(a.compose||'')}</textarea><div class="hint">Only edit this if you understand Docker Compose.</div>`,false)}
       <div class="form-actions"><button class="btn ghost" onclick="closeForm()">Cancel</button><button class="btn" id="app-install-go">Install</button></div>`;
@@ -3567,7 +3567,7 @@ window.appInstallForm=async id=>{
     };
   }catch(e){toast('Error: '+e.message,'error');}
 };
-window.appUninstall=(id,name)=>typedConfirm('Uninstall app',`"${name}" will be stopped and removed. Data in /opt/nexus/data/apps/${id}/ stays on disk.`,name,async()=>{
+window.appUninstall=(id,name)=>typedConfirm('Uninstall app',`"${name}" will be stopped and removed. Data in /opt/actax/data/apps/${id}/ stays on disk.`,name,async()=>{
   toast('Uninstalling…');
   try{await post('/apps/action',{app_id:id,action:'down'});toast(name+' uninstalled');renderApps($('#modal-body'));}catch(e){toast('Error: '+e.message,'error');}
 });
@@ -3620,13 +3620,13 @@ async function renderMonitoring(body,tab){
   if(tab==='Logs'||!tab){
     body.style.overflow='auto';
     body.innerHTML=viewIntro('Logs','Start with errors and warnings. Use advanced filters when you need a specific service or text.',`<button class="btn" onclick="loadLog()">Refresh</button>`)
-      +advancedDetails('Advanced filters',`<div class="toolbar"><select id="log-src"><option value="syslog">Syslog</option><option value="auth">Auth</option><option value="kernel">Kernel</option><option value="boot">Boot</option></select><select id="log-prio"><option value="warning">Warnings and errors</option><option value="err">Errors only</option><option value="">Everything</option><option value="info">Info+</option></select><input id="log-unit" class="nx-search" placeholder="Service, e.g. nexus"><input id="log-grep" class="nx-search" placeholder="Text search"><select id="log-lines"><option value="200">200 lines</option><option value="500">500 lines</option><option value="1000">1000 lines</option></select></div>`,true)
+      +advancedDetails('Advanced filters',`<div class="toolbar"><select id="log-src"><option value="syslog">Syslog</option><option value="auth">Auth</option><option value="kernel">Kernel</option><option value="boot">Boot</option></select><select id="log-prio"><option value="warning">Warnings and errors</option><option value="err">Errors only</option><option value="">Everything</option><option value="info">Info+</option></select><input id="log-unit" class="nx-search" placeholder="Service, e.g. actax"><input id="log-grep" class="nx-search" placeholder="Text search"><select id="log-lines"><option value="200">200 lines</option><option value="500">500 lines</option><option value="1000">1000 lines</option></select></div>`,true)
       +`<pre class="logbox" id="log-out" style="max-height:430px">Loading…</pre>`;
     loadLog();return;
   }
   if(tab==='Audit'){
     const a=await api('/monitoring/audit?lines=300');
-    body.innerHTML=viewIntro('Audit','Actions performed in Nexus. Failed actions are highlighted.','')
+    body.innerHTML=viewIntro('Audit','Actions performed in ActaX. Failed actions are highlighted.','')
       +simpleTable(['Time','User','Action','Status','Remote'],(a.events||[]).map(x=>`<tr><td>${new Date(x.time*1000).toLocaleString('de-DE')}</td><td>${esc(x.user)}</td><td class="mono">${esc(x.action)}</td><td>${statusBadge(x.ok?'OK':'Failed',x.ok?'good':'bad')}</td><td class="mono">${esc(x.remote||'-')}</td></tr>`).join(''));
     return;
   }
@@ -3705,15 +3705,41 @@ async function renderSystem(body,tab){
 }
 async function renderServicesSimple(body){
   const s=await api('/services/list');
-  body.innerHTML=viewIntro('Services','Start, stop or inspect system services. Changing core services can disconnect Nexus.', '')
+  body.innerHTML=viewIntro('Services','Start, stop or inspect system services. Changing core services can disconnect ActaX.', '')
     +`<div class="nx-card-grid">${s.slice(0,80).map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title mono">${esc(x.name)}</div>${statusBadge(x.active,x.active==='active'?'good':'warn')}</div><div class="nx-action-row"><button class="btn ghost sm" onclick="svcAct('${esc(x.name)}','${x.active==='active'?'restart':'start'}')">${x.active==='active'?'Restart':'Start'}</button><button class="btn ghost sm" onclick="svcLogs('${esc(x.name)}')">Logs</button></div></div>`).join('')}</div>`;
 }
 const renderSystemOriginalFallback=async(body,tab)=>{
   if(tab==='Updates'){
     body.innerHTML='<div class="loading">Checking updates…</div>';
-    const u=await api('/sysmgr/updates');
-    body.innerHTML=viewIntro('Updates','Install security and package updates from here.',u.updates>0?`<button class="btn" id="upd-go" onclick="updatesInstall()">Install updates</button>`:'')
-      +`<div class="nx-summary-grid">${summaryCard('Available updates',u.updates,u.updates?'Install when you can reboot if needed':'System current')}</div><pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
+    const [u,actax]=await Promise.all([
+      api('/sysmgr/updates'),
+      api('/sysmgr/actax-release').catch(e=>({remote:{ok:false,error:e.message}})),
+    ]);
+    const remote=actax.remote||{};
+    const actaxTone=!remote.ok?'warn':actax.update_available?'bad':'good';
+    const actaxLabel=!remote.ok?'Check failed':!actax.local_known?'Local version unknown':actax.update_available?'Update available':'Up to date';
+    body.innerHTML=viewIntro('Updates','Install security updates and check whether a newer ActaX version is available on GitHub.',u.updates>0?`<button class="btn" id="upd-go" onclick="updatesInstall()">Install package updates</button>`:'')
+      +`<div class="nx-summary-grid">
+        ${summaryCard('System packages',u.updates,u.updates?'Install when you can reboot if needed':'System current')}
+        ${summaryCard('ActaX GitHub',statusBadge(actaxLabel,actaxTone),remote.ok?`Latest: ${esc(remote.short||'-')}`:esc(remote.error||'GitHub unavailable'))}
+      </div>
+      <div class="nx-card-grid">
+        <div class="nx-action-card">
+          <div class="nx-action-head"><div class="nx-action-title">ActaX repository</div>${statusBadge(actaxLabel,actaxTone)}</div>
+          <div class="nx-kv">
+            ${cardMetric('Installed',esc(actax.local_short||'Unknown'))}
+            ${cardMetric('GitHub main',esc(remote.short||'Unknown'))}
+            ${cardMetric('Branch',esc(actax.branch||'main'))}
+            ${cardMetric('Latest commit date',esc(remote.date||'Unknown'))}
+          </div>
+          <p class="nx-action-sub">${remote.message?esc(remote.message):'ActaX checks the latest main branch commit on GitHub.'}</p>
+          <div class="nx-action-row">
+            ${remote.url?`<button class="btn ghost sm" onclick="window.open('${esc(remote.url)}','_blank')">Open commit</button>`:''}
+            <button class="btn ghost sm" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh | sudo bash')">Copy update command</button>
+          </div>
+        </div>
+      </div>
+      <pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
   } else if(tab==='Freigaben'||tab==='Shares')return renderSharesAll(body);
   else if(tab==='Wartung'||tab==='Maintenance')return renderMaintenance(body);
   else if(tab==='Power'){

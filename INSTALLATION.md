@@ -1,17 +1,17 @@
 # Installation
 
-Nexus can be installed on a Debian or Ubuntu server with one command.
+ActaX can be installed on a Debian or Ubuntu server with one command.
 Run the installer with root privileges on the target server.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mschoettli/Nexus/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh | sudo bash
 ```
 
-The installer downloads the current Nexus release when needed, installs required system packages, creates the Python virtual environment, installs Python dependencies, writes the systemd service, and starts Nexus.
+The installer downloads the current ActaX release when needed, installs required system packages, creates the Python virtual environment, installs Python dependencies, writes the systemd service, and starts ActaX.
 It asks for the admin username, admin password, and web port.
 If the password is left empty, the installer generates a random password and prints it at the end.
-The selected username, password, and port are stored in `/opt/nexus/data/nexus.env` and loaded by the systemd service.
-After installation, Nexus is available at the address printed by the installer; the default port is `8080`.
+The selected username, password, and port are stored in `/opt/actax/data/actax.env` and loaded by the systemd service.
+After installation, ActaX is available at the address printed by the installer; the default port is `8080`.
 
 ## Bundled Wheels
 
@@ -22,25 +22,25 @@ The bundled wheels are intended for Python 3.13 on x86_64 Linux.
 ## Service Management
 
 ```bash
-systemctl status nexus
-systemctl restart nexus
-journalctl -u nexus -f
-systemctl stop nexus
+systemctl status actax
+systemctl restart actax
+journalctl -u actax -f
+systemctl stop actax
 ```
 
 ## Uninstall
 
-Run the uninstall script from the Nexus directory on the server.
+Run the uninstall script from the ActaX directory on the server.
 
 ```bash
 sudo bash uninstall.sh
 ```
 
-The default uninstall stops and removes the Nexus service and backs up the data directory before removing `/opt/nexus`.
-Use `--purge` to remove Nexus and its data without creating a backup.
+The default uninstall stops and removes the ActaX service and backs up the data directory before removing `/opt/actax`.
+Use `--purge` to remove ActaX and its data without creating a backup.
 
 ```bash
 sudo bash uninstall.sh --purge
 ```
 
-Packages installed through the system package manager and host changes made through Nexus, such as shares, users, sudo policy, or cron entries, are not removed automatically.
+Packages installed through the system package manager and host changes made through ActaX, such as shares, users, sudo policy, or cron entries, are not removed automatically.

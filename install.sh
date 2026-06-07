@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 #
-# Nexus installer bootstrap.
+# ActaX installer bootstrap.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/mschoettli/Nexus/main/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh | sudo bash
 #
 set -euo pipefail
 
-ARCHIVE_URL="${NEXUS_ARCHIVE_URL:-https://github.com/mschoettli/Nexus/archive/refs/heads/main.tar.gz}"
+ARCHIVE_URL="${ACTAX_ARCHIVE_URL:-https://github.com/mschoettli/ActaX/archive/refs/heads/main.tar.gz}"
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LOCAL_INSTALLER="${SCRIPT_DIR}/scripts/install-full.sh"
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Nexus must be installed with root privileges." >&2
-  echo "Run: curl -fsSL https://raw.githubusercontent.com/mschoettli/Nexus/main/install.sh | sudo bash" >&2
+  echo "ActaX must be installed with root privileges." >&2
+  echo "Run: curl -fsSL https://raw.githubusercontent.com/mschoettli/ActaX/main/install.sh | sudo bash" >&2
   exit 1
 fi
 
@@ -38,15 +38,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Downloading Nexus..."
+echo "Downloading ActaX..."
 curl -fsSL "$ARCHIVE_URL" | tar -xz -C "$WORK_DIR"
+REMOTE_COMMIT="$(
+  curl -fsSL https://api.github.com/repos/mschoettli/ActaX/commits/main 2>/dev/null \
+    | sed -n 's/.*"sha": "\([0-9a-f]\{40\}\)".*/\1/p' \
+    | head -n 1
+)"
 
-NEXUS_DIR="$(find "$WORK_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
-REMOTE_INSTALLER="${NEXUS_DIR}/scripts/install-full.sh"
+ACTAX_DIR="$(find "$WORK_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+REMOTE_INSTALLER="${ACTAX_DIR}/scripts/install-full.sh"
 
-if [ -z "$NEXUS_DIR" ] || [ ! -f "$REMOTE_INSTALLER" ] || [ ! -f "${NEXUS_DIR}/server.py" ]; then
-  echo "Downloaded archive is not a valid Nexus release." >&2
+if [ -z "$ACTAX_DIR" ] || [ ! -f "$REMOTE_INSTALLER" ] || [ ! -f "${ACTAX_DIR}/server.py" ]; then
+  echo "Downloaded archive is not a valid ActaX release." >&2
   exit 1
 fi
 
-NEXUS_SOURCE_DIR="$NEXUS_DIR" bash "$REMOTE_INSTALLER" "$@"
+ACTAX_SOURCE_DIR="$ACTAX_DIR" ACTAX_SOURCE_COMMIT="$REMOTE_COMMIT" bash "$REMOTE_INSTALLER" "$@"

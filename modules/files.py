@@ -4,9 +4,9 @@ from pathlib import Path
 
 BLOCKED  = {"/proc", "/sys", "/dev", "/run"}
 READONLY = {"/etc", "/bin", "/sbin", "/usr", "/lib", "/lib64", "/boot"}
-TRASH    = "/opt/nexus/data/trash"
-TRASHMETA= "/opt/nexus/data/trash/.meta.json"
-SHAREDB  = "/opt/nexus/data/shares.json"
+TRASH    = "/opt/actax/data/trash"
+TRASHMETA= "/opt/actax/data/trash/.meta.json"
+SHAREDB  = "/opt/actax/data/shares.json"
 MAX_EDIT = 2 * 1024 * 1024
 
 def _r(p):  return os.path.realpath(p)

@@ -1,6 +1,19 @@
 """System: Info, Updates, Cron-Jobs, Power-Management, GPU."""
+import json
+import os
 import re
 import subprocess
+import urllib.error
+import urllib.request
+
+
+ACTAX_REPO_API = "https://api.github.com/repos/mschoettli/ActaX/commits/main"
+ACTAX_REPO_URL = "https://github.com/mschoettli/ActaX"
+VERSION_FILE = os.environ.get(
+    "ACTAX_VERSION_FILE",
+    "/opt/actax/data/actax.version",
+)
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def _run(cmd, timeout=60):
@@ -32,6 +45,66 @@ def list_upgradable():
 
 def apply_updates():
     return _run(["apt-get", "upgrade", "-y"], timeout=1800)
+
+
+def _git_commit():
+    r = _run(["git", "-C", REPO_ROOT, "rev-parse", "HEAD"], timeout=10)
+    commit = r["stdout"].strip()
+    if r["ok"] and re.fullmatch(r"[0-9a-f]{40}", commit):
+        return commit
+    return ""
+
+
+def _stored_commit():
+    try:
+        with open(VERSION_FILE, encoding="utf-8") as f:
+            commit = f.read().strip()
+    except OSError:
+        return ""
+    if re.fullmatch(r"[0-9a-f]{40}", commit):
+        return commit
+    return ""
+
+
+def _remote_commit():
+    req = urllib.request.Request(
+        ACTAX_REPO_API,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "ActaX-Update-Check",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as res:
+            data = json.loads(res.read().decode("utf-8"))
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as e:
+        return {"ok": False, "error": str(e)}
+    commit = data.get("sha", "")
+    info = data.get("commit", {})
+    return {
+        "ok": bool(re.fullmatch(r"[0-9a-f]{40}", commit)),
+        "commit": commit,
+        "short": commit[:7] if commit else "",
+        "url": data.get("html_url") or f"{ACTAX_REPO_URL}/commit/{commit}",
+        "message": (info.get("message") or "").splitlines()[0],
+        "date": ((info.get("committer") or {}).get("date") or ""),
+    }
+
+
+def actax_release_status():
+    """Return local and GitHub release status for ActaX."""
+    local = _stored_commit() or _git_commit()
+    remote = _remote_commit()
+    remote_commit = remote.get("commit", "") if remote.get("ok") else ""
+    return {
+        "repo": ACTAX_REPO_URL,
+        "branch": "main",
+        "local_commit": local,
+        "local_short": local[:7] if local else "",
+        "remote": remote,
+        "update_available": bool(local and remote_commit and local != remote_commit),
+        "local_known": bool(local),
+    }
 
 
 # --- Cron ---
@@ -154,7 +227,7 @@ import os as _os
 import glob as _glob
 
 _AUTO_UPGRADES = "/etc/apt/apt.conf.d/20auto-upgrades"
-_UU_DROPIN = "/etc/apt/apt.conf.d/52nexus-unattended"
+_UU_DROPIN = "/etc/apt/apt.conf.d/52actax-unattended"
 _TIME_RE = re.compile(r"^([01]?\d|2[0-3]):[0-5]\d$")
 
 
@@ -197,7 +270,7 @@ def unattended_set(enable, auto_reboot=False, reboot_time="02:00"):
             f.write(f'APT::Periodic::Update-Package-Lists "{on}";\n')
             f.write(f'APT::Periodic::Unattended-Upgrade "{on}";\n')
         with open(_UU_DROPIN, "w") as f:
-            f.write("// Von Nexus verwaltet – überschreibt Paket-Defaults\n")
+            f.write("// Von ActaX verwaltet – überschreibt Paket-Defaults\n")
             f.write(f'Unattended-Upgrade::Automatic-Reboot "{"true" if auto_reboot else "false"}";\n')
             if reboot_time:
                 f.write(f'Unattended-Upgrade::Automatic-Reboot-Time "{reboot_time}";\n')

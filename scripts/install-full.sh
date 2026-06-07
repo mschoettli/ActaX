@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Nexus – Einsteigerfreundliches Installationsskript
+# ActaX – Einsteigerfreundliches Installationsskript
 # Aufruf:  sudo bash install.sh
 #
 set -euo pipefail
@@ -45,7 +45,7 @@ spinner() {
 }
 
 # Befehl im Hintergrund ausführen, derweil Spinner zeigen; Logausgabe puffern
-SPIN_LOG="/tmp/nexus_install.log"
+SPIN_LOG="/tmp/actax_install.log"
 run_spin() {
   local text="$1"; shift
   ( "$@" ) >"$SPIN_LOG" 2>&1 &
@@ -137,12 +137,12 @@ install_apt_packages() {
 }
 
 # Bei jedem Fehler eine hilfreiche Meldung statt eines kryptischen Abbruchs
-trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO). Prüfe die Ausgabe oben.\n  Logs nach der Installation:  journalctl -u nexus -e"' ERR
+trap 'die "Etwas ist schiefgelaufen (Zeile $LINENO). Prüfe die Ausgabe oben.\n  Logs nach der Installation:  journalctl -u actax -e"' ERR
 
 # ─────────────────────────── Kommandozeilen-Optionen ───────────────────────────
 usage() {
   cat << USAGE
-Nexus – Installations-Assistent
+ActaX – Installations-Assistent
 
 Verwendung:
   sudo bash install.sh [Optionen]
@@ -154,21 +154,21 @@ Optionen:
   -h, --help         Diese Hilfe anzeigen
 
 Das Passwort wird aus Sicherheitsgründen nicht als Option übergeben, sondern
-interaktiv abgefragt oder über die Umgebungsvariable NEXUS_PASS gesetzt
+interaktiv abgefragt oder über die Umgebungsvariable ACTAX_PASS gesetzt
 (leer = automatisch erzeugtes Zufallspasswort).
 
 Beispiele:
   sudo bash install.sh --port 9090
-  sudo NEXUS_PASS='geheim' bash install.sh --yes --port 8443
+  sudo ACTAX_PASS='geheim' bash install.sh --yes --port 8443
 USAGE
 }
 
 _need() { [ -n "${2:-}" ] || die "Option $1 benötigt einen Wert (--help für Hilfe)"; }
 while [ $# -gt 0 ]; do
   case "$1" in
-    --port)    _need "$1" "${2:-}"; NEXUS_PORT="$2"; shift 2 ;;
-    --user)    _need "$1" "${2:-}"; NEXUS_USER="$2"; shift 2 ;;
-    -y|--yes)  NEXUS_YES=1; shift ;;
+    --port)    _need "$1" "${2:-}"; ACTAX_PORT="$2"; shift 2 ;;
+    --user)    _need "$1" "${2:-}"; ACTAX_USER="$2"; shift 2 ;;
+    -y|--yes)  ACTAX_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *)         die "Unbekannte Option: $1  (--help für Hilfe)" ;;
   esac
@@ -191,23 +191,24 @@ echo -e "${NC}  ${DIM}Dein Server. Deine Kontrolle. – Installations-Assistent$
 [ "$(id -u)" -eq 0 ] || die "Bitte mit root-Rechten starten:  ${BOLD}sudo bash install.sh${NC}"
 command -v apt-get >/dev/null 2>&1 || die "Dieses Skript benötigt Debian/Ubuntu (apt wurde nicht gefunden)."
 
-INSTALL_DIR="/opt/nexus"
-SERVICE_FILE="/etc/systemd/system/nexus.service"
-ENV_FILE="${INSTALL_DIR}/data/nexus.env"
+INSTALL_DIR="/opt/actax"
+SERVICE_FILE="/etc/systemd/system/actax.service"
+ENV_FILE="${INSTALL_DIR}/data/actax.env"
+VERSION_FILE="${INSTALL_DIR}/data/actax.version"
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-SRC="${NEXUS_SOURCE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
-[ -f "${SRC}/server.py" ] || die "server.py nicht gefunden. Installer bitte aus dem Nexus-Release starten."
+SRC="${ACTAX_SOURCE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+[ -f "${SRC}/server.py" ] || die "server.py nicht gefunden. Installer bitte aus dem ActaX-Release starten."
 
 # Vorhandene Installation erkennen
 REINSTALL=0
 if [ -d "$INSTALL_DIR" ] && [ -f "$SERVICE_FILE" ]; then
   REINSTALL=1
-  warn "Nexus ist bereits installiert. Der Code wird aktualisiert, deine Daten (Konten, Schlüssel, Zertifikate) bleiben erhalten."
+  warn "ActaX ist bereits installiert. Der Code wird aktualisiert, deine Daten (Konten, Schlüssel, Zertifikate) bleiben erhalten."
 fi
 
 # ─────────────────────────── Eingaben (mit Defaults) ───────────────────────────
-ASSUME_YES="${NEXUS_YES:-0}"
+ASSUME_YES="${ACTAX_YES:-0}"
 ask() {  # ask "Frage" "default" -> Antwort auf stdout
   local prompt="$1" def="$2" ans=""
   if [ "$ASSUME_YES" = "1" ]; then echo "$def"; return; fi
@@ -216,10 +217,10 @@ ask() {  # ask "Frage" "default" -> Antwort auf stdout
 }
 
 step "Konfiguration"
-ADMIN_USER="$(ask 'Admin-Benutzername' "${NEXUS_USER:-admin}")"
+ADMIN_USER="$(ask 'Admin-Benutzername' "${ACTAX_USER:-admin}")"
 
 # Passwort: versteckt einlesen, bestätigen; leer => sicheres Zufallspasswort
-ADMIN_PASS="${NEXUS_PASS:-}"
+ADMIN_PASS="${ACTAX_PASS:-}"
 GEN_PASS=0
 if [ "$ASSUME_YES" != "1" ] && [ -z "$ADMIN_PASS" ]; then
   while :; do
@@ -238,7 +239,7 @@ fi
 
 # Port (validiert)
 while :; do
-  PORT="$(ask 'Web-Port' "${NEXUS_PORT:-8080}")"
+  PORT="$(ask 'Web-Port' "${ACTAX_PORT:-8080}")"
   if [[ "$PORT" =~ ^[0-9]+$ ]] && [ "$PORT" -ge 1 ] && [ "$PORT" -le 65535 ]; then break; fi
   warn "Bitte eine gültige Portnummer (1–65535) angeben."
   [ "$ASSUME_YES" = "1" ] && die "Ungültiger Port: ${PORT}"
@@ -282,7 +283,7 @@ run_spin "Paketquellen aktualisieren …" apt-get update -qq \
 
 install_apt_packages "${PKGS[@]}"
 
-# Docker Compose v2 sicherstellen – Nexus' Apps-Funktion braucht "docker compose".
+# Docker Compose v2 sicherstellen – ActaX' Apps-Funktion braucht "docker compose".
 # Debians docker.io bringt das Plugin NICHT mit.
 case " ${PKGS[*]} " in
   *" docker.io "*)
@@ -310,7 +311,7 @@ case " ${PKGS[*]} " in
 esac
 
 # ─────────────────────────── 2. Dateien kopieren ───────────────────────────
-phase "Nexus nach ${INSTALL_DIR} kopieren"
+phase "ActaX nach ${INSTALL_DIR} kopieren"
 mkdir -p "$INSTALL_DIR" "$INSTALL_DIR/data"
 if [ "$SRC" != "$INSTALL_DIR" ]; then
   # data/ niemals überschreiben; venv & Müll ausschließen
@@ -321,6 +322,13 @@ if [ "$SRC" != "$INSTALL_DIR" ]; then
   ok "Programmdateien kopiert."
 else
   info "Installation läuft bereits im Zielverzeichnis – kein Kopieren nötig."
+fi
+SOURCE_COMMIT="${ACTAX_SOURCE_COMMIT:-}"
+if [ -z "$SOURCE_COMMIT" ] && [ -d "$SRC/.git" ] && command -v git >/dev/null 2>&1; then
+  SOURCE_COMMIT="$(git -C "$SRC" rev-parse HEAD 2>/dev/null || true)"
+fi
+if [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+  printf '%s\n' "$SOURCE_COMMIT" > "$VERSION_FILE"
 fi
 
 # ─────────────────────────── 3. Python-Umgebung ───────────────────────────
@@ -362,10 +370,10 @@ ok "Python-Umgebung bereit."
 phase "Zugangsdaten & Konfiguration schreiben"
 umask 077
 cat > "$ENV_FILE" << EOF
-# Von install.sh erzeugt – zentrale Konfiguration für Nexus
-NEXUS_USER=${ADMIN_USER}
-NEXUS_PASS=${ADMIN_PASS}
-NEXUS_PORT=${PORT}
+# Von install.sh erzeugt – zentrale Konfiguration für ActaX
+ACTAX_USER=${ADMIN_USER}
+ACTAX_PASS=${ADMIN_PASS}
+ACTAX_PORT=${PORT}
 EOF
 chmod 600 "$ENV_FILE"
 ok "Konfiguration gespeichert: ${DIM}${ENV_FILE}${NC}"
@@ -374,7 +382,7 @@ ok "Konfiguration gespeichert: ${DIM}${ENV_FILE}${NC}"
 phase "Dienst einrichten und starten"
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=Nexus Server Panel
+Description=ActaX Server Panel
 After=network-online.target docker.service
 Wants=network-online.target
 
@@ -385,7 +393,7 @@ WorkingDirectory=${INSTALL_DIR}
 EnvironmentFile=${ENV_FILE}
 ExecStart=${INSTALL_DIR}/venv/bin/uvicorn server:app --host 0.0.0.0 --port ${PORT} --workers 1
 # TLS/HTTPS optional: Zertifikat unter System → Sicherheit → SSL erzeugen, dann
-# obige Zeile durch folgende ersetzen und 'systemctl daemon-reload && systemctl restart nexus':
+# obige Zeile durch folgende ersetzen und 'systemctl daemon-reload && systemctl restart actax':
 # ExecStart=${INSTALL_DIR}/venv/bin/uvicorn server:app --host 0.0.0.0 --port ${PORT} --workers 1 --ssl-keyfile ${INSTALL_DIR}/data/certs/<CN>.key --ssl-certfile ${INSTALL_DIR}/data/certs/<CN>.crt
 Restart=always
 RestartSec=5
@@ -395,8 +403,8 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable nexus >/dev/null 2>&1 || true
-systemctl restart nexus
+systemctl enable actax >/dev/null 2>&1 || true
+systemctl restart actax
 
 # ─────────────────────────── 6. Health-Check ───────────────────────────
 phase "Funktionsprüfung"
@@ -415,9 +423,9 @@ LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"; LAN_IP="${LAN_IP:-127.0.
 URL="http://${LAN_IP}:${PORT}"
 
 case "$HTTP" in
-  200|302|307) ok "Nexus läuft und ist erreichbar." ;;
-  000) die "Dienst antwortet nicht. Status:  journalctl -u nexus -e" ;;
-  *)   die "Unerwartete Antwort (HTTP ${HTTP}). Status:  journalctl -u nexus -e" ;;
+  200|302|307) ok "ActaX läuft und ist erreichbar." ;;
+  000) die "Dienst antwortet nicht. Status:  journalctl -u actax -e" ;;
+  *)   die "Unerwartete Antwort (HTTP ${HTTP}). Status:  journalctl -u actax -e" ;;
 esac
 
 # ─────────────────────────── Abschluss ───────────────────────────
@@ -435,10 +443,10 @@ else
 fi
 echo
 echo -e "  ${DIM}Nützliche Befehle:${NC}"
-echo -e "    Status   : ${BOLD}systemctl status nexus${NC}"
-echo -e "    Logs     : ${BOLD}journalctl -u nexus -f${NC}"
-echo -e "    Neustart : ${BOLD}systemctl restart nexus${NC}"
-echo -e "    Stoppen  : ${BOLD}systemctl stop nexus${NC}"
+echo -e "    Status   : ${BOLD}systemctl status actax${NC}"
+echo -e "    Logs     : ${BOLD}journalctl -u actax -f${NC}"
+echo -e "    Neustart : ${BOLD}systemctl restart actax${NC}"
+echo -e "    Stoppen  : ${BOLD}systemctl stop actax${NC}"
 echo
 [ "$REINSTALL" = "1" ] && info "Hinweis: Bestehende Daten wurden beibehalten."
 echo -e "  ${DIM}Tipp: Weitere Konten findest du oben rechts im Benutzermenü.${NC}"
