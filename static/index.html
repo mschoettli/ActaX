@@ -87,7 +87,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .tile-badge.red{display:flex;background:#ef4444}
 .tile-badge.gray{display:flex;background:rgba(100,100,120,.8);color:rgba(255,255,255,.6)}
 .tile-badge.blue{display:flex;background:#60a5fa}
-.tile-badge.dot-only{top:2px;right:2px;min-width:8px;width:8px;height:8px;border-radius:50%;padding:0;font-size:0;box-shadow:0 0 8px rgba(239,68,68,.45)}
+.tile-badge.dot-only{top:-4px;right:-4px;min-width:14px;width:14px;height:14px;border-radius:50%;padding:0;font-size:0}
 @keyframes tileIn{to{opacity:1;transform:translateY(0)}}
 .tile:hover{background:rgba(122,74,255,.07);border-color:rgba(122,74,255,.3);transform:translateY(-1px)}
 .tile-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -2759,11 +2759,11 @@ function pollUpdateJob(id,reboot){
 
 window.runvardUpdateInstall=async()=>{
   const btn=$('#runvard-upd-go');
-  const out=$('#runvard-upd-out');
+  const out=$('#runvard-upd-status');
   if(btn){btn.disabled=true;btn.textContent='Update running';btn.onclick=null;}
   if(out){
-    out.style.display='block';
-    out.textContent='Starting runvard self-update. The service will restart when the update finishes.';
+    out.style.display='grid';
+    out.innerHTML=runvardUpdateInfoHtml('running','Update running','runvard is downloading and applying the latest release.');
   }
   try{
     const r=await post('/sysmgr/runvard-update/apply',{});
@@ -2779,23 +2779,39 @@ window.runvardUpdateInstall=async()=>{
     if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=runvardUpdateInstall;}
   }
 };
+function runvardUpdateInfoHtml(tone,title,detail){
+  const cls=tone==='done'?'good':tone==='error'?'bad':'warn';
+  return `<div class="nx-action-head" style="margin:0"><div><div class="nx-action-title">runvard update</div><div class="nx-action-sub" style="margin:4px 0 0">${esc(detail)}</div></div>${statusBadge(title,cls)}</div>`;
+}
+function summarizeRunvardUpdateLog(log){
+  const lines=(log||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const important=lines.filter(line=>/runvard update started|Downloading latest|Latest commit|Running installer|runvard update finished|failed|error/i.test(line));
+  return important.slice(-6).join('\n');
+}
 function pollRunvardUpdateLog(until){
-  const out=$('#runvard-upd-out');
+  const out=$('#runvard-upd-status');
   const btn=$('#runvard-upd-go');
   const tick=async()=>{
     try{
       const r=await api('/sysmgr/runvard-update/log');
-      if(out&&r.log)out.textContent=r.log;
+      if(out&&r.log){
+        const summary=summarizeRunvardUpdateLog(r.log);
+        out.innerHTML=runvardUpdateInfoHtml('running','Update running',summary||'runvard update is still running.');
+      }
       if((r.log||'').includes('runvard update finished')){
         toast('runvard update completed');
+        if(out)out.innerHTML=runvardUpdateInfoHtml('done','Done','Update completed. Click Jetzt aktualisieren when you are ready to reload.');
         if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=()=>location.reload();}
         return;
       }
     }catch(e){
-      if(out)out.textContent+='\nrunvard is restarting. Waiting for update log...';
+      if(out)out.innerHTML=runvardUpdateInfoHtml('running','Update running','runvard may be restarting. Waiting for the update result.');
     }
     if(Date.now()<until)setTimeout(tick,2500);
-    else if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=()=>location.reload();}
+    else{
+      if(out)out.innerHTML=runvardUpdateInfoHtml('done','Check manually','The update request finished polling. Reload when you want to check the new version.');
+      if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=()=>location.reload();}
+    }
   };
   tick();
 }
@@ -3878,7 +3894,7 @@ const renderSystemOriginalFallback=async(body,tab)=>{
             ${remote.url?`<button class="btn ghost sm" onclick="window.open('${esc(remote.url)}','_blank')">Open commit</button>`:''}
             <button class="btn ghost sm" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/mschoettli/runvard/main/install.sh | sudo bash')">Copy update command</button>
           </div>
-          <pre class="logbox" id="runvard-upd-out" style="display:none;margin-top:12px;max-height:220px"></pre>
+          <div class="nx-card-inner" id="runvard-upd-status" style="display:none;margin-top:12px"></div>
         </div>
       </div>
       <pre class="logbox" id="upd-out" style="display:none;max-height:300px"></pre>`;
