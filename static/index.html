@@ -134,11 +134,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .form-card{width:480px;max-width:95vw;max-height:90vh;overflow:auto;background:#0d0e1a;border:1px solid rgba(122,74,255,.2);border-radius:14px;animation:modalIn .2s ease}
 .form-head{padding:18px 28px;border-bottom:.5px solid var(--border);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
 .form-body{padding:24px 28px}
+.form-body p{font-size:12px;line-height:1.5;color:var(--text2)}
 .form-field{margin-bottom:16px}
 .form-field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px}
 .form-field .hint{font-size:11px;color:var(--text3);margin-top:4px}
 .expert-mode .form-field .hint{display:none}
 .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.typed-confirm-copy{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px}
+.typed-confirm-hint{font-size:12px;color:var(--text2);line-height:1.45;margin-bottom:8px}
+.typed-confirm-hint .mono{font-size:12px;font-weight:600;color:var(--text)}
 
 /* ── Confirm modal ── */
 .confirm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center}
@@ -146,7 +150,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(ellip
 .confirm-card{background:#0d0e1a;border:1px solid rgba(239,68,68,.22);border-radius:14px;padding:28px 32px;max-width:380px;width:90vw;text-align:center;animation:modalIn .2s ease}
 .confirm-card .ci{font-size:36px;margin-bottom:14px}
 .confirm-card h3{margin-bottom:8px;font-size:16px}
-.confirm-card p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
+.confirm-card p{font-size:12px;color:var(--text2);margin-bottom:24px;line-height:1.55}
 .confirm-actions{display:flex;gap:10px;justify-content:center}
 
 /* ── Toast ── */
@@ -614,7 +618,7 @@ function openForm(title,icon,fields,onSubmit){
     let inp='';
     if(f.type==='select') inp=`<select id="f_${f.name}">${(f.options||[]).map(o=>`<option value="${esc(o.value??o)}">${esc(o.label??o)}</option>`).join('')}</select>`;
     else if(f.type==='textarea') inp=`<textarea id="f_${f.name}" rows="${f.rows||6}" style="font-family:'JetBrains Mono',monospace">${esc(f.value||'')}</textarea>`;
-    else if(f.type==='checkbox') inp=`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="f_${f.name}" ${f.value?'checked':''} style="width:auto"> ${esc(f.label)}</label>`;
+    else if(f.type==='checkbox') inp=`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="f_${f.name}" ${f.value?'checked':''} style="width:auto"> ${esc(f.label)}</label>`;
     else inp=`<input id="f_${f.name}" type="${f.type||'text'}" value="${esc(f.value||'')}" placeholder="${esc(f.placeholder||'')}">`;
     if(f.type==='checkbox') return `<div class="form-field">${inp}${f.hint?`<div class="hint">${f.hint}</div>`:''}</div>`;
     return `<div class="form-field"><label>${esc(f.label)}</label>${inp}${f.hint?`<div class="hint">${f.hint}</div>`:''}</div>`;
@@ -664,8 +668,8 @@ function viewIntro(title,copy,actionHtml){
 function typedConfirm(title,msg,phrase,cb){
   $('#form-head').innerHTML=`<span>⚠</span> ${esc(title)}`;
   $('#form-body').innerHTML=`
-    <p style="font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:14px">${esc(msg)}</p>
-    <div class="hint" style="margin-bottom:8px">Type <span class="mono">${esc(phrase)}</span> to continue.</div>
+    <p class="typed-confirm-copy">${esc(msg)}</p>
+    <div class="typed-confirm-hint">Type <span class="mono">${esc(phrase)}</span> to continue.</div>
     <input id="typed-confirm-input" class="mono" autocomplete="off" placeholder="${esc(phrase)}">
     <div class="form-actions">
       <button class="btn ghost" onclick="closeForm()">Cancel</button>
@@ -1383,7 +1387,7 @@ window.sambaShareForm=(path,name)=>openForm('Samba-Freigabe erstellen','🔗',[
     $('#form-body').innerHTML=`
       <div style="margin-bottom:20px;padding:16px;background:rgba(34,197,94,.08);border:.5px solid rgba(34,197,94,.3);border-radius:12px;display:flex;align-items:center;gap:10px">
         <span style="color:var(--green);font-size:18px">✓</span>
-        <span style="font-size:13px;color:var(--green)">Freigabe <strong>${esc(d.name)}</strong> erstellt</span>
+        <span style="font-size:12px;color:var(--green)">Freigabe <strong>${esc(d.name)}</strong> erstellt</span>
       </div>
       <div class="form-field">
         <label>Windows</label>
@@ -2328,8 +2332,8 @@ window.userSecForm=async name=>{
   $('#form-body').innerHTML=`
     <div class="section-label" style="margin-bottom:10px">sudo-Rechte</div>
     <div class="nx-card-inner">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px"><input type="checkbox" id="sec-sudo" ${s.sudo?'checked':''} style="width:auto"> Mitglied der <span class="mono">sudo</span>-Gruppe</label>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="sec-nopasswd" ${s.nopasswd?'checked':''} style="width:auto"> Ohne Passwort (<span class="mono">NOPASSWD</span>)</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;margin-bottom:10px"><input type="checkbox" id="sec-sudo" ${s.sudo?'checked':''} style="width:auto"> Mitglied der <span class="mono">sudo</span>-Gruppe</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px"><input type="checkbox" id="sec-nopasswd" ${s.nopasswd?'checked':''} style="width:auto"> Ohne Passwort (<span class="mono">NOPASSWD</span>)</label>
       <div class="hint" style="margin-top:8px">NOPASSWD legt einen geprüften Drop-in unter <span class="mono">/etc/sudoers.d/</span> an.</div>
       <div style="text-align:right;margin-top:12px"><button class="btn sm" onclick="userSecSudo('${esc(name)}')">sudo übernehmen</button></div>
     </div>
@@ -2530,7 +2534,7 @@ async function renderSystem(body,tab){
          <div style="font-size:12px;color:var(--text3);margin-top:4px">${u.updates>0?'Updates verfügbar':'System aktuell'}</div>
        </div>
        ${u.updates>0?`<div class="nx-card-inner" style="flex:1;min-width:240px;margin:0;display:flex;flex-direction:column;justify-content:center;gap:12px">
-         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="upd-reboot" style="width:auto"> Nach Abschluss neu starten</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="checkbox" id="upd-reboot" style="width:auto"> Nach Abschluss neu starten</label>
          <button class="btn" id="upd-go" onclick="updatesInstall()" style="align-self:flex-start">⬇ Updates installieren</button>
        </div>`:''}
      </div>
@@ -2641,8 +2645,8 @@ async function renderMaintenance(body){
     html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Das Paket <span class="mono">unattended-upgrades</span> ist nicht installiert.</div><button class="btn sm" onclick="uuInstall()">Paket installieren</button>`;
   }else{
     html+=`
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px"><input type="checkbox" id="uu-enable" ${uu.enabled?'checked':''} style="width:auto"> Unbeaufsichtigte Updates aktiv</label>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px"><input type="checkbox" id="uu-reboot" ${uu.auto_reboot?'checked':''} style="width:auto"> Automatischer Neustart bei Bedarf</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;margin-bottom:10px"><input type="checkbox" id="uu-enable" ${uu.enabled?'checked':''} style="width:auto"> Unbeaufsichtigte Updates aktiv</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;margin-bottom:10px"><input type="checkbox" id="uu-reboot" ${uu.auto_reboot?'checked':''} style="width:auto"> Automatischer Neustart bei Bedarf</label>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">Neustart-Uhrzeit</span><input id="uu-time" value="${esc(uu.reboot_time||'02:00')}" placeholder="HH:MM" style="width:90px;font-family:'JetBrains Mono',monospace"></div>
       <div style="text-align:right"><button class="btn sm" onclick="uuSave()">Speichern</button></div>`;
   }
@@ -2756,7 +2760,7 @@ function pollUpdateJob(id,reboot){
 window.runvardUpdateInstall=async()=>{
   const btn=$('#runvard-upd-go');
   const out=$('#runvard-upd-out');
-  if(btn){btn.disabled=true;btn.textContent='Starting update...';}
+  if(btn){btn.disabled=true;btn.textContent='Update running';btn.onclick=null;}
   if(out){
     out.style.display='block';
     out.textContent='Starting runvard self-update. The service will restart when the update finishes.';
@@ -2767,25 +2771,31 @@ window.runvardUpdateInstall=async()=>{
       throw new Error((r&&r.error)||'Update did not start');
     }
     toast('runvard update started');
-    if(btn)btn.textContent='Update running...';
-    pollRunvardUpdateLog(Date.now()+45000);
-    setTimeout(()=>{location.reload();},35000);
+    if(btn)btn.textContent='Update running';
+    pollRunvardUpdateLog(Date.now()+180000);
   }catch(e){
     toast('runvard update failed: '+e.message,'error');
     if(out)out.textContent='Failed to start runvard update: '+e.message;
-    if(btn){btn.disabled=false;btn.textContent='Install runvard update';}
+    if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=runvardUpdateInstall;}
   }
 };
 function pollRunvardUpdateLog(until){
   const out=$('#runvard-upd-out');
+  const btn=$('#runvard-upd-go');
   const tick=async()=>{
     try{
       const r=await api('/sysmgr/runvard-update/log');
       if(out&&r.log)out.textContent=r.log;
+      if((r.log||'').includes('runvard update finished')){
+        toast('runvard update completed');
+        if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=()=>location.reload();}
+        return;
+      }
     }catch(e){
-      if(out)out.textContent+='\nrunvard is restarting. Reloading shortly...';
+      if(out)out.textContent+='\nrunvard is restarting. Waiting for update log...';
     }
     if(Date.now()<until)setTimeout(tick,2500);
+    else if(btn){btn.disabled=false;btn.textContent='Jetzt aktualisieren';btn.onclick=()=>location.reload();}
   };
   tick();
 }
@@ -3864,7 +3874,7 @@ const renderSystemOriginalFallback=async(body,tab)=>{
           </div>
           <p class="nx-action-sub">${remote.message?esc(remote.message):'runvard checks the latest main branch commit on GitHub.'}</p>
           <div class="nx-action-row">
-            ${runvard.update_available?`<button class="btn sm" id="runvard-upd-go" onclick="runvardUpdateInstall()">Install runvard update</button>`:''}
+            ${runvard.update_available?`<button class="btn sm" id="runvard-upd-go" onclick="runvardUpdateInstall()">Jetzt aktualisieren</button>`:''}
             ${remote.url?`<button class="btn ghost sm" onclick="window.open('${esc(remote.url)}','_blank')">Open commit</button>`:''}
             <button class="btn ghost sm" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/mschoettli/runvard/main/install.sh | sudo bash')">Copy update command</button>
           </div>
