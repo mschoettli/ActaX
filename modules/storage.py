@@ -1,8 +1,10 @@
 """Speicher: Block-Devices, Partitionierung, Formatierung, Mount, RAID, SMART,
 LVM, LUKS, ZFS/Btrfs-Pools, iSCSI-Initiator und Dateisystem-Resize."""
 import json
+import os
 import re
 import subprocess
+import time
 
 
 def _run(cmd, timeout=60, input_text=None):
@@ -49,10 +51,39 @@ def _root_device():
     r = _run(["findmnt", "-n", "-o", "SOURCE", "/"])
     if r["ok"]:
         src = r["stdout"].strip()
-        # /dev/sda1 -> sda
-        base = src.replace("/dev/", "").rstrip("0123456789")
-        return base
+        return _base_device_name(src)
     return ""
+
+
+def _base_device_name(device: str):
+    """Return the parent disk name for a block device."""
+    name = os.path.basename(device.replace("/dev/", ""))
+    if name.startswith("mapper/"):
+        return name
+    if re.fullmatch(r"(nvme\d+n\d+|mmcblk\d+|loop\d+)p\d+", name):
+        return re.sub(r"p\d+$", "", name)
+    if re.fullmatch(r"[A-Za-z]+\d+", name):
+        return re.sub(r"\d+$", "", name)
+    return name
+
+
+def _partition_name(device: str, number: int = 1):
+    """Return the partition name for a disk and partition number."""
+    name = os.path.basename(device.replace("/dev/", ""))
+    suffix = f"p{number}" if name[-1:].isdigit() else str(number)
+    return f"{name}{suffix}"
+
+
+def _settle_device(device: str, timeout: int = 10):
+    """Ask the kernel to refresh partition metadata and wait for a device."""
+    _run(["partprobe", device])
+    _run(["udevadm", "settle"])
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if os.path.exists(device):
+            return True
+        time.sleep(0.2)
+    return os.path.exists(device)
 
 
 def smart_data(device: str):
@@ -84,7 +115,7 @@ def smart_data(device: str):
 
 def _guard(device: str):
     """Sicherheitscheck: Root-Device niemals anfassen."""
-    base = device.replace("/dev/", "").rstrip("0123456789")
+    base = _base_device_name(device)
     if base == _root_device():
         raise PermissionError("Root-Device kann nicht verändert werden")
 
@@ -92,13 +123,23 @@ def _guard(device: str):
 def create_partition_table(device: str, label: str = "gpt"):
     _guard(device)
     dev = f"/dev/{device}" if not device.startswith("/dev/") else device
-    return _run(["parted", "-s", dev, "mklabel", label])
+    res = _run(["parted", "-s", dev, "mklabel", label])
+    if res["ok"]:
+        _settle_device(dev)
+    return res
 
 
 def create_partition(device: str, start="0%", end="100%"):
     _guard(device)
     dev = f"/dev/{device}" if not device.startswith("/dev/") else device
-    return _run(["parted", "-s", dev, "mkpart", "primary", start, end])
+    res = _run(["parted", "-s", dev, "mkpart", "primary", start, end])
+    part_name = _partition_name(dev)
+    part_path = f"/dev/{part_name}"
+    if res["ok"] and not _settle_device(part_path):
+        res["ok"] = False
+        res["stderr"] = f"Partition {part_path} was not detected"
+    res["partition"] = part_name
+    return res
 
 
 def format_partition(partition: str, fstype: str = "ext4"):

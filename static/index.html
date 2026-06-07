@@ -3445,6 +3445,8 @@ $('#bg-panel-overlay').onclick=e=>{if(e.target.id==='bg-panel-overlay')closePane
 // Beginner-first render overrides.
 function deviceTitle(d){return `${d.protected?'🔒 ':''}${esc(d.name)}`;}
 function devicePath(name){return name.startsWith('/dev/')?name:'/dev/'+name;}
+function partitionName(name,num=1){const base=name.startsWith('/dev/')?name.slice(5):name;return base+(/\d$/.test(base)?'p':'')+num;}
+function requireOk(res,fallback){if(res&&res.ok===false)throw new Error(res.stderr||fallback||'Storage operation failed');return res;}
 function cardMetric(label,value){return `<div><span>${esc(label)}</span><strong>${value}</strong></div>`;}
 function simpleTable(headers,rows){
   return `<table class="nx-muted-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="'+headers.length+'">'+emptyState('Nothing here yet')+'</td></tr>'}</tbody></table>`;
@@ -3550,7 +3552,7 @@ window.diskWizard=dev=>typedConfirm('Erase and set up disk',`This will create a 
   {name:'fstype',label:'Filesystem',type:'select',options:['ext4','xfs','btrfs']},
   {name:'mountpoint',label:'Mount point',placeholder:'/mnt/data'},
   {name:'persist',label:'Mount automatically after reboot',type:'checkbox',value:true},
-],async d=>{closeForm();toast('Setting up disk…');try{await post('/storage/partition-table',{device:dev,label:'gpt'});await post('/storage/partition',{device:dev});await post('/storage/format',{partition:dev+'1',fstype:d.fstype});await post('/storage/mount',{partition:dev+'1',mountpoint:d.mountpoint,persist:d.persist});toast('Disk ready');renderStorage($('#modal-body'),'Disks');}catch(e){toast('Error: '+e.message,'error');}}));
+],async d=>{closeForm();toast('Setting up disk…');try{requireOk(await post('/storage/partition-table',{device:dev,label:'gpt'}),'Could not create partition table');const part=requireOk(await post('/storage/partition',{device:dev}),'Could not create partition');const partition=part.partition||partitionName(dev);requireOk(await post('/storage/format',{partition,fstype:d.fstype}),'Could not format partition');requireOk(await post('/storage/mount',{partition,mountpoint:d.mountpoint,persist:d.persist}),'Could not mount partition');toast('Disk ready');renderStorage($('#modal-body'),'Disks');}catch(e){toast('Error: '+e.message,'error');}}));
 window.zpoolDestroy=name=>typedConfirm('Destroy ZFS pool',`Pool "${name}" and its data will be removed permanently.`,name,async()=>{try{const r=await post('/storage/zfs/destroy',{name});if(r&&r.ok===false){toast(r.stderr||'Error','error');return;}toast('Pool destroyed');renderStorage($('#modal-body'),'ZFS/Btrfs');}catch(e){toast('Error: '+e.message,'error');}});
 window.lvRemove=lvpath=>typedConfirm('Delete logical volume',`Logical volume "${lvpath}" will be deleted permanently.`,lvpath,async()=>{try{const r=await post('/storage/lvm/lv-remove',{lv_path:lvpath});if(r&&r.ok===false){toast(r.stderr||'Error','error');return;}toast('Volume deleted');renderStorage($('#modal-body'),'LVM');}catch(e){toast('Error: '+e.message,'error');}});
 
