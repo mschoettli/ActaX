@@ -649,6 +649,57 @@ function tr(key){
   const lang=currentLanguage();
   return (I18N[lang]&&I18N[lang][key])||I18N_BASE[key]||key;
 }
+const UI_PHRASES={
+  de:{
+    'Loading...':'Lädt...','Loading…':'Lädt...','Error':'Fehler','Apps':'Apps','Back':'Zurück','(empty)':'(leer)',
+    'Create':'Erstellen','Create container':'Container erstellen','Create project':'Projekt erstellen','Create VM':'VM erstellen','Create pool':'Pool erstellen','Create backup':'Backup erstellen','Create user':'Benutzer erstellen','Create certificate':'Zertifikat erstellen','Create job':'Cron-Job erstellen','Add rule':'Regel hinzufügen','Add member':'Mitglied hinzufügen',
+    'Start':'Starten','Stop':'Stoppen','Restart':'Neu starten','Delete':'Löschen','Edit':'Bearbeiten','Open':'Öffnen','Manage':'Verwalten','Refresh':'Aktualisieren','Install':'Installieren','Cancel':'Abbrechen','Actions':'Aktionen',
+    'Status':'Status','Name':'Name','Project':'Projekt','Driver':'Treiber','Mount point':'Mountpoint','Size':'Größe','Used':'Belegt','Time':'Zeit','Duration':'Dauer','User':'Benutzer','Action':'Aktion','Remote':'Remote','From':'Von','To':'Nach','No.':'Nr.','Rules':'Regeln',
+    'Running':'Läuft','Stopped':'Gestoppt','Active':'Aktiv','Inactive':'Inaktiv','Connected':'Verbunden','Down':'Inaktiv','Available':'Verfügbar','Start first':'Erst starten','State':'Status','Resolved':'Erledigt','Attention':'Aufmerksamkeit','Failed':'Fehlgeschlagen','Manual':'Manuell','Configured':'Konfiguriert','Total':'Gesamt','Active now':'Aktuell aktiv','Never':'Nie',
+    'Container services':'Container-Dienste','Start, stop and inspect services running in Docker. Advanced image and volume tools are in the other tabs.':'Docker-Dienste starten, stoppen und prüfen. Erweiterte Image- und Volume-Werkzeuge liegen in den anderen Tabs.','Containers':'Container','No containers':'Keine Container','No public ports':'Keine öffentlichen Ports',
+    'Compose projects':'Compose-Projekte','Advanced multi-container projects. Editing Compose files can break services.':'Erweiterte Multi-Container-Projekte. Änderungen an Compose-Dateien können Dienste beschädigen.','Images':'Images','Images are templates used to create containers.':'Images sind Vorlagen zum Erstellen von Containern.','Pull image':'Image laden','Volumes':'Volumes','Volumes hold persistent container data. Delete only when you know the data is no longer needed.':'Volumes enthalten persistente Containerdaten. Nur löschen, wenn die Daten sicher nicht mehr gebraucht werden.',
+    'Virtual machines':'Virtuelle Maschinen','Virtualization is not available on this server.':'Virtualisierung ist auf diesem Server nicht verfügbar.','VM support unavailable':'VM-Unterstützung nicht verfügbar','Create and run complete guest systems. Advanced hardware and snapshots are inside Manage.':'Vollständige Gastsysteme erstellen und betreiben. Erweiterte Hardware und Snapshots liegen unter Verwalten.','No virtual machines':'Keine virtuellen Maschinen','VM storage pools':'VM-Speicherpools','Pools are folders or filesystems where VM disks are stored.':'Pools sind Ordner oder Dateisysteme, in denen VM-Datenträger liegen.','No VM storage pools':'Keine VM-Speicherpools','Console':'Konsole','Open the VM screen.':'VM-Bildschirm öffnen.','Open console':'Konsole öffnen','Hardware':'Hardware','Attach disks or network cards.':'Datenträger oder Netzwerkkarten anhängen.','Manage hardware':'Hardware verwalten','Snapshots':'Snapshots','Save or restore a VM state.':'VM-Zustand speichern oder wiederherstellen.','Open snapshots':'Snapshots öffnen','Advanced':'Erweitert','Clone the VM or change the CD-ROM.':'VM klonen oder CD-ROM ändern.',
+    'Backup history':'Backup-Verlauf','Recent backup results and failures.':'Letzte Backup-Ergebnisse und Fehler.','Backups':'Backups','Protect important folders by copying them on a schedule.':'Wichtige Ordner nach Zeitplan kopieren und schützen.','Backup jobs':'Backup-Jobs','Last result':'Letztes Ergebnis','No backup has run':'Noch kein Backup ausgeführt','No backup jobs yet':'Noch keine Backup-Jobs','Run now':'Jetzt ausführen',
+    'Logs':'Logs','Start with errors and warnings. Use advanced filters when you need a specific service or text.':'Beginne mit Fehlern und Warnungen. Nutze erweiterte Filter für bestimmte Dienste oder Textsuche.','Advanced filters':'Erweiterte Filter','Warnings and errors':'Warnungen und Fehler','Errors only':'Nur Fehler','Everything':'Alles','Text search':'Textsuche','Audit':'Audit','Actions performed in runvard. Failed actions are highlighted.':'In runvard ausgeführte Aktionen. Fehlgeschlagene Aktionen werden hervorgehoben.','Alerts':'Hinweise','Important events that need attention.':'Wichtige Ereignisse, die Aufmerksamkeit brauchen.','No alerts':'Keine Hinweise',
+    'Firewall':'Firewall','Interfaces':'Schnittstellen','Allow or block network access. Keep rules simple unless you know exactly what a service needs.':'Netzwerkzugriff erlauben oder blockieren. Regeln einfach halten, außer die Dienstanforderungen sind klar.','Unknown backend':'Unbekanntes Backend','Network interfaces':'Netzwerkschnittstellen','Most servers only need one connected interface with an IP address. Advanced networking is below.':'Die meisten Server brauchen nur eine verbundene Schnittstelle mit IP-Adresse. Erweiterte Netzwerkeinstellungen sind unten.','Configure IP':'IP konfigurieren','Advanced: bridge':'Erweitert: Bridge','Type':'Typ',
+    'Groups':'Gruppen','Groups control access for multiple users.':'Gruppen steuern Zugriffe für mehrere Benutzer.','Group':'Gruppe','Members':'Mitglieder','Certificates':'Zertifikate','Create local certificates for services that need HTTPS.':'Lokale Zertifikate für Dienste erstellen, die HTTPS benötigen.','Certificate details':'Zertifikatdetails','No certificates':'Keine Zertifikate','Users':'Benutzer','Manage Linux users, passwords, file sharing access and admin rights.':'Linux-Benutzer, Passwörter, Dateifreigaben und Adminrechte verwalten.','Password':'Passwort','File sharing':'Dateifreigabe','Admin rights':'Adminrechte','SSH keys':'SSH-Keys','Enabled':'Aktiviert','Off':'Aus',
+    'System overview':'Systemübersicht','This is the safe place to check health before changing settings.':'Hier kannst du den Zustand prüfen, bevor du Einstellungen änderst.','Server':'Server','Updates':'Updates','Attention needed':'Aufmerksamkeit erforderlich','System current':'System aktuell','Review monitoring':'Monitoring prüfen','No active alerts':'Keine aktiven Hinweise','Uptime':'Laufzeit','Running time':'Betriebszeit','Architecture':'Architektur','Advanced system tools':'Erweiterte Systemwerkzeuge','These tools can change low-level server behavior. Use them only when needed.':'Diese Werkzeuge können grundlegendes Serververhalten ändern. Nur bei Bedarf verwenden.','Packages':'Pakete','Search, install or remove apt packages.':'apt-Pakete suchen, installieren oder entfernen.','Open packages':'Pakete öffnen','Inspect or change application security profiles.':'Anwendungs-Sicherheitsprofile prüfen oder ändern.','Open AppArmor':'AppArmor öffnen','Cron':'Cron','Cron jobs':'Cron-Jobs','Run commands automatically on a schedule. Use this only for commands you already trust.':'Befehle automatisch nach Zeitplan ausführen. Nur für Befehle verwenden, denen du vertraust.','Schedule':'Zeitplan','Command':'Befehl','Services':'Dienste','Start, stop or inspect system services. Changing core services can disconnect runvard.':'Systemdienste starten, stoppen oder prüfen. Änderungen an Kerndiensten können runvard trennen.','Power':'Energie','Restart or shut down the server.':'Server neu starten oder herunterfahren.','Shut down':'Herunterfahren','Reboot the server now or after a delay.':'Server jetzt oder nach Verzögerung neu starten.','Power off the server.':'Server ausschalten.'
+  },
+  fr:{'Alerts':'Alertes','Logs':'Journaux','Audit':'Audit','System overview':'Vue d’ensemble du système','Firewall':'Pare-feu','Interfaces':'Interfaces','Network interfaces':'Interfaces réseau','Backups':'Sauvegardes','Backup history':'Historique des sauvegardes','Virtual machines':'Machines virtuelles','Container services':'Services de conteneurs','Users':'Utilisateurs','Groups':'Groupes','Certificates':'Certificats','Services':'Services','Power':'Alimentation','Start':'Démarrer','Stop':'Arrêter','Restart':'Redémarrer','Delete':'Supprimer','Manage':'Gérer','Refresh':'Actualiser','Create backup':'Créer une sauvegarde','Create user':'Créer un utilisateur','No alerts':'Aucune alerte','Important events that need attention.':'Événements importants nécessitant une attention.','Actions':'Actions','Status':'État','Running':'En cours','Stopped':'Arrêté','Failed':'Échec','Attention':'Attention','Resolved':'Résolu'},
+  it:{'Alerts':'Avvisi','Logs':'Log','Audit':'Audit','System overview':'Panoramica sistema','Firewall':'Firewall','Interfaces':'Interfacce','Network interfaces':'Interfacce di rete','Backups':'Backup','Backup history':'Cronologia backup','Virtual machines':'Macchine virtuali','Container services':'Servizi container','Users':'Utenti','Groups':'Gruppi','Certificates':'Certificati','Services':'Servizi','Power':'Alimentazione','Start':'Avvia','Stop':'Ferma','Restart':'Riavvia','Delete':'Elimina','Manage':'Gestisci','Refresh':'Aggiorna','Create backup':'Crea backup','Create user':'Crea utente','No alerts':'Nessun avviso','Important events that need attention.':'Eventi importanti che richiedono attenzione.','Actions':'Azioni','Status':'Stato','Running':'In esecuzione','Stopped':'Fermo','Failed':'Non riuscito','Attention':'Attenzione','Resolved':'Risolto'},
+  es:{'Alerts':'Alertas','Logs':'Registros','Audit':'Auditoría','System overview':'Resumen del sistema','Firewall':'Cortafuegos','Interfaces':'Interfaces','Network interfaces':'Interfaces de red','Backups':'Copias de seguridad','Backup history':'Historial de copias','Virtual machines':'Máquinas virtuales','Container services':'Servicios de contenedores','Users':'Usuarios','Groups':'Grupos','Certificates':'Certificados','Services':'Servicios','Power':'Energía','Start':'Iniciar','Stop':'Detener','Restart':'Reiniciar','Delete':'Eliminar','Manage':'Gestionar','Refresh':'Actualizar','Create backup':'Crear copia','Create user':'Crear usuario','No alerts':'Sin alertas','Important events that need attention.':'Eventos importantes que requieren atención.','Actions':'Acciones','Status':'Estado','Running':'En ejecución','Stopped':'Detenido','Failed':'Fallido','Attention':'Atención','Resolved':'Resuelto'},
+  pt:{'Alerts':'Alertas','Logs':'Registos','Audit':'Auditoria','System overview':'Visão geral do sistema','Firewall':'Firewall','Interfaces':'Interfaces','Network interfaces':'Interfaces de rede','Backups':'Cópias de segurança','Backup history':'Histórico de cópias','Virtual machines':'Máquinas virtuais','Container services':'Serviços de contentores','Users':'Utilizadores','Groups':'Grupos','Certificates':'Certificados','Services':'Serviços','Power':'Energia','Start':'Iniciar','Stop':'Parar','Restart':'Reiniciar','Delete':'Eliminar','Manage':'Gerir','Refresh':'Atualizar','Create backup':'Criar cópia','Create user':'Criar utilizador','No alerts':'Sem alertas','Important events that need attention.':'Eventos importantes que requerem atenção.','Actions':'Ações','Status':'Estado','Running':'Em execução','Stopped':'Parado','Failed':'Falhou','Attention':'Atenção','Resolved':'Resolvido'},
+  nl:{'Alerts':'Meldingen','Logs':'Logs','Audit':'Audit','System overview':'Systeemoverzicht','Firewall':'Firewall','Interfaces':'Interfaces','Network interfaces':'Netwerkinterfaces','Backups':'Back-ups','Backup history':'Back-upgeschiedenis','Virtual machines':'Virtuele machines','Container services':'Containerservices','Users':'Gebruikers','Groups':'Groepen','Certificates':'Certificaten','Services':'Services','Power':'Stroom','Start':'Starten','Stop':'Stoppen','Restart':'Herstarten','Delete':'Verwijderen','Manage':'Beheren','Refresh':'Vernieuwen','Create backup':'Back-up maken','Create user':'Gebruiker maken','No alerts':'Geen meldingen','Important events that need attention.':'Belangrijke gebeurtenissen die aandacht nodig hebben.','Actions':'Acties','Status':'Status','Running':'Actief','Stopped':'Gestopt','Failed':'Mislukt','Attention':'Aandacht','Resolved':'Opgelost'},
+  pl:{'Alerts':'Alerty','Logs':'Logi','Audit':'Audyt','System overview':'Przegląd systemu','Firewall':'Zapora','Interfaces':'Interfejsy','Network interfaces':'Interfejsy sieciowe','Backups':'Kopie zapasowe','Backup history':'Historia kopii','Virtual machines':'Maszyny wirtualne','Container services':'Usługi kontenerów','Users':'Użytkownicy','Groups':'Grupy','Certificates':'Certyfikaty','Services':'Usługi','Power':'Zasilanie','Start':'Uruchom','Stop':'Zatrzymaj','Restart':'Uruchom ponownie','Delete':'Usuń','Manage':'Zarządzaj','Refresh':'Odśwież','Create backup':'Utwórz kopię','Create user':'Utwórz użytkownika','No alerts':'Brak alertów','Important events that need attention.':'Ważne zdarzenia wymagające uwagi.','Actions':'Akcje','Status':'Status','Running':'Działa','Stopped':'Zatrzymano','Failed':'Niepowodzenie','Attention':'Uwaga','Resolved':'Rozwiązano'},
+  tr:{'Alerts':'Uyarılar','Logs':'Günlükler','Audit':'Denetim','System overview':'Sistem genel bakışı','Firewall':'Güvenlik duvarı','Interfaces':'Arayüzler','Network interfaces':'Ağ arayüzleri','Backups':'Yedeklemeler','Backup history':'Yedekleme geçmişi','Virtual machines':'Sanal makineler','Container services':'Konteyner servisleri','Users':'Kullanıcılar','Groups':'Gruplar','Certificates':'Sertifikalar','Services':'Servisler','Power':'Güç','Start':'Başlat','Stop':'Durdur','Restart':'Yeniden başlat','Delete':'Sil','Manage':'Yönet','Refresh':'Yenile','Create backup':'Yedek oluştur','Create user':'Kullanıcı oluştur','No alerts':'Uyarı yok','Important events that need attention.':'Dikkat gerektiren önemli olaylar.','Actions':'İşlemler','Status':'Durum','Running':'Çalışıyor','Stopped':'Durdu','Failed':'Başarısız','Attention':'Dikkat','Resolved':'Çözüldü'},
+  uk:{'Alerts':'Сповіщення','Logs':'Журнали','Audit':'Аудит','System overview':'Огляд системи','Firewall':'Брандмауер','Interfaces':'Інтерфейси','Network interfaces':'Мережеві інтерфейси','Backups':'Резервні копії','Backup history':'Історія резервних копій','Virtual machines':'Віртуальні машини','Container services':'Сервіси контейнерів','Users':'Користувачі','Groups':'Групи','Certificates':'Сертифікати','Services':'Сервіси','Power':'Живлення','Start':'Запустити','Stop':'Зупинити','Restart':'Перезапустити','Delete':'Видалити','Manage':'Керувати','Refresh':'Оновити','Create backup':'Створити резервну копію','Create user':'Створити користувача','No alerts':'Немає сповіщень','Important events that need attention.':'Важливі події, що потребують уваги.','Actions':'Дії','Status':'Стан','Running':'Працює','Stopped':'Зупинено','Failed':'Помилка','Attention':'Увага','Resolved':'Вирішено'}
+};
+function phrase(text){
+  const lang=currentLanguage();
+  return (UI_PHRASES[lang]&&UI_PHRASES[lang][text])||text;
+}
+function translateRenderedText(root){
+  if(!root)return;
+  const attrs=['title','placeholder','aria-label'];
+  const skip='input,textarea,script,style,.xterm,.logbox,.mono';
+  root.querySelectorAll('*').forEach(el=>{
+    if(el.closest(skip))return;
+    attrs.forEach(a=>{const v=el.getAttribute(a);if(v&&phrase(v)!==v)el.setAttribute(a,phrase(v));});
+  });
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{
+    if(!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
+    if(n.parentElement&&n.parentElement.closest(skip))return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT;
+  }});
+  const nodes=[];
+  while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    const raw=n.nodeValue;
+    const trimmed=raw.trim();
+    const translated=phrase(trimmed);
+    if(translated!==trimmed)n.nodeValue=raw.replace(trimmed,translated);
+  });
+}
 function languageOptionName(code){
   const lang=LANGUAGES.find(x=>x.code===code);
   return lang?lang.name:code;
@@ -675,6 +726,10 @@ function updateClock(){
   const date=new Intl.DateTimeFormat(lang,{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}).format(n);
   const time=new Intl.DateTimeFormat(lang,{hour:'2-digit',minute:'2-digit'}).format(n);
   el.textContent=tr('daySuffix')?`${date} – ${time} ${tr('daySuffix')}`:`${date} – ${time}`;
+}
+function localeCode(){
+  const map={uk:'uk-UA'};
+  return map[currentLanguage()]||currentLanguage();
 }
 function openLanguageModal(){
   const userMenu=$('#user-menu');
@@ -997,8 +1052,8 @@ function openModal(tile){
     const link=document.createElement('button');
     link.className='btn ghost sm';
     link.style.cssText='margin-left:auto;align-self:center';
-    link.innerHTML='🧩 Apps';
-    link.title='Zur Apps-Kachel wechseln';
+    link.innerHTML='🧩 '+esc(tr('tileApps'));
+    link.title=phrase('Apps');
     link.onclick=()=>openTileById('apps');
     tabsEl.appendChild(link);
   }
@@ -1017,18 +1072,19 @@ function openTileById(id){const t=TILES.find(x=>x.id===id);if(t)openModal(t);}
 function closeModal(){$('#overlay').classList.remove('open');if(termWs){termWs.close();termWs=null;}if(typeof window._termDispose==='function'){try{window._termDispose();}catch(e){}}if(typeof _dockerStatsTimer!=='undefined'&&_dockerStatsTimer){clearInterval(_dockerStatsTimer);_dockerStatsTimer=null;}if(typeof destroyHistChart==='function')destroyHistChart();if(typeof _vncRfb!=='undefined'&&_vncRfb){try{_vncRfb.disconnect();}catch(e){}_vncRfb=null;}}
 $('#overlay').onclick=e=>{if(e.target.id==='overlay')closeModal();};
 
-async function renderTab(id,tab){const body=$('#modal-body');body.style.padding='';body.style.overflow='';body.style.display='';body.style.flexDirection='';body.innerHTML='<div class="loading">Lädt…</div>';try{
- if(id==='terminal')return renderTerminal(body);
- if(id==='files')return renderFiles(body);
- if(id==='storage')return renderStorage(body,tab);
- if(id==='docker')return renderDocker(body,tab);
- if(id==='vms')return renderVMs(body,tab);
- if(id==='backup')return renderBackup(body,tab);
- if(id==='shares')return renderShares(body,tab);
- if(id==='monitoring')return renderMonitoring(body,tab);
- if(id==='system')return renderSystem(body,tab);
- if(id==='apps')return renderApps(body);
-}catch(e){body.innerHTML=`<div class="loading">Fehler: ${esc(e.message)}</div>`;}}
+async function renderTab(id,tab){const body=$('#modal-body');body.style.padding='';body.style.overflow='';body.style.display='';body.style.flexDirection='';body.innerHTML=`<div class="loading">${esc(tr('loading'))}</div>`;try{
+ if(id==='terminal')await renderTerminal(body);
+ else if(id==='files')await renderFiles(body);
+ else if(id==='storage')await renderStorage(body,tab);
+ else if(id==='docker')await renderDocker(body,tab);
+ else if(id==='vms')await renderVMs(body,tab);
+ else if(id==='backup')await renderBackup(body,tab);
+ else if(id==='shares')await renderShares(body,tab);
+ else if(id==='monitoring')await renderMonitoring(body,tab);
+ else if(id==='system')await renderSystem(body,tab);
+ else if(id==='apps')await renderApps(body);
+ translateRenderedText(body);
+}catch(e){body.innerHTML=`<div class="loading">${esc(tr('error'))}: ${esc(e.message)}</div>`;}}
 
 // ═══ Terminal ═══
 // Theme: kräftige, gut unterscheidbare ANSI-Farben passend zum runvard-Akzent
@@ -2629,9 +2685,9 @@ window.loadLog=async()=>{
   const unit=$('#log-unit')?.value.trim(); if(unit)p.set('unit',unit);
   const grep=$('#log-grep')?.value.trim(); if(grep)p.set('grep',grep);
   const lines=$('#log-lines')?.value; if(lines)p.set('lines',lines);
-  if($('#log-out'))$('#log-out').textContent='Lädt…';
-  try{const l=await api('/monitoring/logs?'+p.toString());if($('#log-out'))$('#log-out').textContent=l.logs||'(leer)';}
-  catch(e){if($('#log-out'))$('#log-out').textContent='Fehler: '+e.message;}
+  if($('#log-out'))$('#log-out').textContent=tr('loading');
+  try{const l=await api('/monitoring/logs?'+p.toString());if($('#log-out'))$('#log-out').textContent=l.logs||phrase('(empty)');}
+  catch(e){if($('#log-out'))$('#log-out').textContent=tr('error')+': '+e.message;}
 };
 
 // ═══ System ═══
@@ -3885,12 +3941,12 @@ function appCardHtml(a){
 async function renderBackup(body,tab){
   if(tab==='Verlauf'||tab==='History'){
     const h=await api('/backup/history');
-    body.innerHTML=viewIntro('Backup history','Recent backup results and failures.','')+simpleTable(['Job','Time','Duration','Status'],h.map(x=>`<tr><td>${esc(x.name)}</td><td>${new Date(x.time*1000).toLocaleString('de-DE')}</td><td>${x.duration}s</td><td>${statusBadge(x.success?'OK':'Failed',x.success?'good':'bad')}</td></tr>`).join(''));
+    body.innerHTML=viewIntro('Backup history','Recent backup results and failures.','')+simpleTable(['Job','Time','Duration','Status'],h.map(x=>`<tr><td>${esc(x.name)}</td><td>${new Date(x.time*1000).toLocaleString(localeCode())}</td><td>${x.duration}s</td><td>${statusBadge(x.success?'OK':'Failed',x.success?'good':'bad')}</td></tr>`).join(''));
     return;
   }
   const [j,h]=await Promise.all([api('/backup/jobs'),api('/backup/history').catch(()=>[])]);
   body.innerHTML=viewIntro('Backups','Protect important folders by copying them on a schedule.',`<button class="btn" onclick="backupForm()">Create backup</button>`)
-    +`<div class="nx-summary-grid">${summaryCard('Backup jobs',j.length,'Configured')}${summaryCard('Last result',h[0]?(h[0].success?'OK':'Failed'):'Never',h[0]?new Date(h[0].time*1000).toLocaleString('de-DE'):'No backup has run')}</div>
+    +`<div class="nx-summary-grid">${summaryCard('Backup jobs',j.length,'Configured')}${summaryCard('Last result',h[0]?(h[0].success?'OK':'Failed'):'Never',h[0]?new Date(h[0].time*1000).toLocaleString(localeCode()):'No backup has run')}</div>
     <div class="nx-card-grid">${j.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${esc(x.name)}</div>${statusBadge(x.schedule==='manual'?'Manual':x.schedule,'good')}</div><div class="nx-kv">${cardMetric('From',esc(x.source))}${cardMetric('To',esc(x.dest))}</div><button class="btn sm" onclick="runBackup(${x.id})">Run now</button></div>`).join('')||emptyState('No backup jobs yet')}</div>`;
 }
 
@@ -3905,11 +3961,11 @@ async function renderMonitoring(body,tab){
   if(tab==='Audit'){
     const a=await api('/monitoring/audit?lines=300');
     body.innerHTML=viewIntro('Audit','Actions performed in runvard. Failed actions are highlighted.','')
-      +simpleTable(['Time','User','Action','Status','Remote'],(a.events||[]).map(x=>`<tr><td>${new Date(x.time*1000).toLocaleString('de-DE')}</td><td>${esc(x.user)}</td><td class="mono">${esc(x.action)}</td><td>${statusBadge(x.ok?'OK':'Failed',x.ok?'good':'bad')}</td><td class="mono">${esc(x.remote||'-')}</td></tr>`).join(''));
+      +simpleTable(['Time','User','Action','Status','Remote'],(a.events||[]).map(x=>`<tr><td>${new Date(x.time*1000).toLocaleString(localeCode())}</td><td>${esc(x.user)}</td><td class="mono">${esc(x.action)}</td><td>${statusBadge(x.ok?'OK':'Failed',x.ok?'good':'bad')}</td><td class="mono">${esc(x.remote||'-')}</td></tr>`).join(''));
     return;
   }
   const alerts=await api('/monitoring/alerts/history');
-  body.innerHTML=viewIntro('Alerts','Important events that need attention.','')+`<div class="nx-card-grid">${alerts.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${new Date(x.time*1000).toLocaleString('de-DE')}</div>${statusBadge(x.resolved?'Resolved':'Attention',x.resolved?'good':'bad')}</div><div class="nx-action-sub">${esc(x.message)}</div><span class="nx-chip">${esc(x.channel)}</span></div>`).join('')||emptyState('No alerts')}</div>`;
+  body.innerHTML=viewIntro('Alerts','Important events that need attention.','')+`<div class="nx-card-grid">${alerts.map(x=>`<div class="nx-action-card"><div class="nx-action-head"><div class="nx-action-title">${new Date(x.time*1000).toLocaleString(localeCode())}</div>${statusBadge(x.resolved?'Resolved':'Attention',x.resolved?'good':'bad')}</div><div class="nx-action-sub">${esc(x.message)}</div><span class="nx-chip">${esc(x.channel)}</span></div>`).join('')||emptyState('No alerts')}</div>`;
 }
 
 async function renderNetwork(body,tab){
@@ -4085,7 +4141,7 @@ function nxDecorateSearch(root){
     let scheduled=false;
     new MutationObserver(()=>{
       if(scheduled)return;scheduled=true;
-      requestAnimationFrame(()=>{scheduled=false;nxDecorateSearch(mb);});
+      requestAnimationFrame(()=>{scheduled=false;nxDecorateSearch(mb);translateRenderedText(mb);});
     }).observe(mb,{childList:true,subtree:true});
   }
 })();
