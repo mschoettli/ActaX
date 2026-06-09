@@ -4982,6 +4982,7 @@ function syncModalLanguage(){
     const index=(currentTile.tabs||[]).indexOf(el.dataset.tab);
     if(index>=0)el.textContent=tabLabel(currentTile,el.dataset.tab,index);
   });
+  if(currentTile.id==='apps'&&appsCatalog.length)renderAppsView($('#modal-body'));
   loadAuthStatus();
 }
 function openTileById(id){const t=TILES.find(x=>x.id===id);if(t)openModal(t);}
@@ -7089,7 +7090,203 @@ async function renderNetDetail(body){
   loadHistoryChart('hist-net',[{field:'net_down',label:'▼ Download',color:'#22c55e'},{field:'net_up',label:'▲ Upload',color:'#eab308'}],{scale:v=>+(v/1048576).toFixed(2),ytick:v=>v+' MB/s'});
 }
 // ═══ Apps (App-Store) ═══
-let appsCatalog=[], appsActiveCat='All', appsSearch='', _activeInstalls=0;
+let appsCatalog=[], appsActiveCat='all', appsSearch='', _activeInstalls=0;
+let appsCatalogCategories=[];
+
+const APP_LANGS=['de','en','fr','it','es','pt'];
+const APP_UI={
+  searchApps:{de:'Apps suchen...',en:'Search apps...',fr:'Rechercher des apps...',it:'Cerca app...',es:'Buscar apps...',pt:'Pesquisar apps...'},
+  apps:{de:'Apps',en:'apps',fr:'apps',it:'app',es:'apps',pt:'apps'},
+  installed:{de:'installiert',en:'installed',fr:'installées',it:'installate',es:'instaladas',pt:'instaladas'},
+  update:{de:'Update',en:'update',fr:'mise à jour',it:'aggiornamento',es:'actualización',pt:'atualização'},
+  updates:{de:'Updates',en:'updates',fr:'mises à jour',it:'aggiornamenti',es:'actualizaciones',pt:'atualizações'},
+  checkUpdates:{de:'Updates prüfen',en:'Check updates',fr:'Vérifier les mises à jour',it:'Controlla aggiornamenti',es:'Buscar actualizaciones',pt:'Verificar atualizações'},
+  noAppsFound:{de:'Keine Apps gefunden',en:'No apps found',fr:'Aucune app trouvée',it:'Nessuna app trovata',es:'No se encontraron apps',pt:'Nenhuma app encontrada'},
+  dataFolder:{de:'Datenordner',en:'Data folder',fr:'Dossier de données',it:'Cartella dati',es:'Carpeta de datos',pt:'Pasta de dados'},
+  automatic:{de:'Automatisch',en:'Automatic',fr:'Automatique',it:'Automatico',es:'Automático',pt:'Automático'},
+  installDefault:{de:'Diese App mit den Standardeinstellungen installieren.',en:'Install this app with the default settings.',fr:'Installer cette app avec les paramètres par défaut.',it:'Installa questa app con le impostazioni predefinite.',es:'Instala esta app con la configuración predeterminada.',pt:'Instale esta app com as definições predefinidas.'},
+  installDidNotStart:{de:'Installation wurde nicht gestartet',en:'Install did not start',fr:'L’installation n’a pas démarré',it:'Installazione non avviata',es:'La instalación no empezó',pt:'A instalação não começou'},
+  installFailed:{de:'Installation fehlgeschlagen',en:'Install failed',fr:'Échec de l’installation',it:'Installazione non riuscita',es:'Error de instalación',pt:'Falha na instalação'},
+};
+const APP_CATEGORY_LABELS={
+  all:{de:'Alle',en:'All',fr:'Toutes',it:'Tutte',es:'Todas',pt:'Todas'},
+  media:{de:'Medien',en:'Media',fr:'Médias',it:'Media',es:'Multimedia',pt:'Multimédia'},
+  network:{de:'Netzwerk',en:'Network',fr:'Réseau',it:'Rete',es:'Red',pt:'Rede'},
+  productivity:{de:'Produktivität',en:'Productivity',fr:'Productivité',it:'Produttività',es:'Productividad',pt:'Produtividade'},
+  ai:{de:'KI',en:'AI',fr:'IA',it:'IA',es:'IA',pt:'IA'},
+  monitoring:{de:'Monitoring',en:'Monitoring',fr:'Supervision',it:'Monitoraggio',es:'Supervisión',pt:'Monitorização'},
+  download:{de:'Downloads',en:'Downloads',fr:'Téléchargements',it:'Download',es:'Descargas',pt:'Transferências'},
+  home:{de:'Smart Home',en:'Home',fr:'Maison connectée',it:'Smart Home',es:'Hogar inteligente',pt:'Casa inteligente'},
+  developer:{de:'Entwicklung',en:'Developer',fr:'Développement',it:'Sviluppo',es:'Desarrollo',pt:'Desenvolvimento'},
+  database:{de:'Datenbanken',en:'Databases',fr:'Bases de données',it:'Database',es:'Bases de datos',pt:'Bases de dados'},
+};
+const APP_CATEGORY_ALIASES={
+  Alle:'all',All:'all',all:'all',
+  Media:'media',
+  Netzwerk:'network',Network:'network',
+  Produktivität:'productivity',Productivity:'productivity',
+  AI:'ai',KI:'ai',
+  Monitoring:'monitoring',
+  Download:'download',Downloads:'download',
+  Home:'home',
+  Developer:'developer',
+  Datenbank:'database',Datenbanken:'database',Database:'database',Databases:'database',
+};
+const APP_DESC_ROWS=[
+  ['jellyfin','Freier Media-Server für Film, Serien & Musik','Free media server for movies, shows, and music','Serveur multimédia libre pour films, séries et musique','Server multimediale libero per film, serie e musica','Servidor multimedia libre para películas, series y música','Servidor multimédia livre para filmes, séries e música'],
+  ['plex','Media-Server mit Premium-Funktionen','Media server with premium features','Serveur multimédia avec fonctions premium','Server multimediale con funzioni premium','Servidor multimedia con funciones premium','Servidor multimédia com funcionalidades premium'],
+  ['emby','Persönlicher Media-Server','Personal media server','Serveur multimédia personnel','Server multimediale personale','Servidor multimedia personal','Servidor multimédia pessoal'],
+  ['audiobookshelf','Server für Hörbücher & Podcasts','Server for audiobooks and podcasts','Serveur pour livres audio et podcasts','Server per audiolibri e podcast','Servidor para audiolibros y podcasts','Servidor para audiolivros e podcasts'],
+  ['navidrome','Moderner Musik-Streaming-Server','Modern music streaming server','Serveur moderne de streaming musical','Server moderno per streaming musicale','Servidor moderno de streaming musical','Servidor moderno de streaming de música'],
+  ['kavita','Server für Comics, Manga & E-Books','Server for comics, manga, and e-books','Serveur pour BD, mangas et e-books','Server per fumetti, manga ed e-book','Servidor para cómics, manga y libros electrónicos','Servidor para banda desenhada, manga e e-books'],
+  ['calibre-web','Web-Oberfläche für die E-Book-Bibliothek','Web interface for your e-book library','Interface web pour votre bibliothèque d’e-books','Interfaccia web per la libreria di e-book','Interfaz web para tu biblioteca de libros electrónicos','Interface web para a sua biblioteca de e-books'],
+  ['photoprism','KI-gestützte Foto-Verwaltung','AI-assisted photo management','Gestion de photos assistée par IA','Gestione foto assistita da IA','Gestión de fotos asistida por IA','Gestão de fotos assistida por IA'],
+  ['immich','Foto- & Video-Backup in Hochleistung','High-performance photo and video backup','Sauvegarde photo et vidéo haute performance','Backup foto e video ad alte prestazioni','Copia de seguridad rápida de fotos y vídeos','Backup de fotos e vídeos de alto desempenho'],
+  ['tube-archivist','Eigenes YouTube-Archiv','Self-hosted YouTube archive','Archive YouTube auto-hébergée','Archivio YouTube self-hosted','Archivo propio de YouTube','Arquivo próprio do YouTube'],
+  ['pihole','Netzwerkweiter Ad- & Tracker-Blocker','Network-wide ad and tracker blocker','Blocage des publicités et traqueurs pour tout le réseau','Blocco di pubblicità e tracker per tutta la rete','Bloqueador de anuncios y rastreadores para toda la red','Bloqueador de anúncios e rastreadores para toda a rede'],
+  ['adguard-home','Netzwerkweite Werbe- & Tracking-Sperre','Network-wide ad and tracking protection','Protection réseau contre publicités et suivi','Protezione di rete contro annunci e tracciamento','Protección de red contra anuncios y seguimiento','Proteção de rede contra anúncios e rastreamento'],
+  ['tailscale','Zero-Config-VPN für Zugriff von überall','Zero-config VPN for access from anywhere','VPN sans configuration pour accéder depuis partout','VPN zero-config per accedere da ovunque','VPN sin configuración para acceder desde cualquier lugar','VPN sem configuração para acesso a partir de qualquer lugar'],
+  ['wg-easy','WireGuard-VPN mit Web-UI','WireGuard VPN with a web UI','VPN WireGuard avec interface web','VPN WireGuard con interfaccia web','VPN WireGuard con interfaz web','VPN WireGuard com interface web'],
+  ['nginx-proxy-manager','Reverse-Proxy mit SSL & Web-UI','Reverse proxy with SSL and a web UI','Proxy inverse avec SSL et interface web','Reverse proxy con SSL e interfaccia web','Proxy inverso con SSL e interfaz web','Proxy reverso com SSL e interface web'],
+  ['traefik','Cloud-nativer Reverse-Proxy & Load-Balancer','Cloud-native reverse proxy and load balancer','Proxy inverse et répartiteur de charge cloud-native','Reverse proxy e bilanciatore cloud-native','Proxy inverso y balanceador cloud-native','Proxy reverso e balanceador cloud-native'],
+  ['caddy','Webserver mit automatischem HTTPS','Web server with automatic HTTPS','Serveur web avec HTTPS automatique','Server web con HTTPS automatico','Servidor web con HTTPS automático','Servidor web com HTTPS automático'],
+  ['unbound','Validierender DNS-Resolver','Validating DNS resolver','Résolveur DNS validant','Resolver DNS validante','Resolutor DNS validador','Resolvedor DNS com validação'],
+  ['ddns-updater','Dynamisches DNS automatisch aktualisieren','Automatically update dynamic DNS','Mettre à jour le DNS dynamique automatiquement','Aggiorna automaticamente il DNS dinamico','Actualiza DNS dinámico automáticamente','Atualiza DNS dinâmico automaticamente'],
+  ['speedtest-tracker','Internet-Geschwindigkeit über Zeit verfolgen','Track internet speed over time','Suivre la vitesse Internet dans le temps','Monitora la velocità Internet nel tempo','Sigue la velocidad de Internet en el tiempo','Acompanha a velocidade da Internet ao longo do tempo'],
+  ['omada-controller','TP-Link Omada Netzwerk-Controller','TP-Link Omada network controller','Contrôleur réseau TP-Link Omada','Controller di rete TP-Link Omada','Controlador de red TP-Link Omada','Controlador de rede TP-Link Omada'],
+  ['nextcloud','Eigene private Cloud für Dateien & mehr','Your own private cloud for files and more','Votre cloud privé pour les fichiers et plus encore','Cloud privato per file e altro','Tu nube privada para archivos y más','A sua nuvem privada para ficheiros e mais'],
+  ['vaultwarden','Bitwarden-kompatibler Passwort-Manager','Bitwarden-compatible password manager','Gestionnaire de mots de passe compatible Bitwarden','Gestore password compatibile con Bitwarden','Gestor de contraseñas compatible con Bitwarden','Gestor de palavras-passe compatível com Bitwarden'],
+  ['paperless-ngx','Digitales Dokumenten-Management','Digital document management','Gestion numérique de documents','Gestione documentale digitale','Gestión documental digital','Gestão documental digital'],
+  ['joplin-server','Synchronisierungs-Server für Joplin-Notizen','Sync server for Joplin notes','Serveur de synchronisation pour notes Joplin','Server di sincronizzazione per note Joplin','Servidor de sincronización para notas de Joplin','Servidor de sincronização para notas Joplin'],
+  ['trilium','Hierarchische Notiz-App für Wissensbasen','Hierarchical notes app for knowledge bases','App de notes hiérarchiques pour bases de connaissances','App di note gerarchiche per basi di conoscenza','App de notas jerárquicas para bases de conocimiento','App de notas hierárquicas para bases de conhecimento'],
+  ['affine','Open-Source-Alternative zu Notion & Miro','Open-source alternative to Notion and Miro','Alternative open source à Notion et Miro','Alternativa open source a Notion e Miro','Alternativa open source a Notion y Miro','Alternativa open source ao Notion e Miro'],
+  ['outline','Team-Wissensdatenbank & Wiki','Team knowledge base and wiki','Base de connaissances et wiki pour équipes','Knowledge base e wiki per team','Base de conocimiento y wiki para equipos','Base de conhecimento e wiki para equipas'],
+  ['bookstack','Plattform für Dokumentation & Wikis','Platform for documentation and wikis','Plateforme pour documentation et wikis','Piattaforma per documentazione e wiki','Plataforma para documentación y wikis','Plataforma para documentação e wikis'],
+  ['mealie','Rezept-Manager & Essensplaner','Recipe manager and meal planner','Gestionnaire de recettes et planning de repas','Gestore ricette e pianificatore pasti','Gestor de recetas y planificador de comidas','Gestor de receitas e planeador de refeições'],
+  ['wallabag','Artikel speichern & später lesen','Save articles and read them later','Enregistrer des articles à lire plus tard','Salva articoli da leggere più tardi','Guarda artículos para leerlos más tarde','Guarda artigos para ler mais tarde'],
+  ['linkding','Minimalistischer Bookmark-Manager','Minimal bookmark manager','Gestionnaire de favoris minimaliste','Gestore di segnalibri minimalista','Gestor de marcadores minimalista','Gestor de favoritos minimalista'],
+  ['freshrss','Selbst-gehosteter RSS-Feed-Aggregator','Self-hosted RSS feed aggregator','Agrégateur RSS auto-hébergé','Aggregatore RSS self-hosted','Agregador RSS autoalojado','Agregador RSS self-hosted'],
+  ['stirling-pdf','Werkzeuge zum Bearbeiten von PDFs','Tools for editing PDFs','Outils pour modifier les PDF','Strumenti per modificare PDF','Herramientas para editar PDF','Ferramentas para editar PDFs'],
+  ['docuseal','Dokumente digital signieren','Digitally sign documents','Signer des documents numériquement','Firma digitale dei documenti','Firma documentos digitalmente','Assinatura digital de documentos'],
+  ['actual','Privates Haushaltsbuch & Budget-Tool','Private personal finance and budgeting tool','Budget personnel et finances privées','Bilancio personale e strumento di budget','Finanzas personales y presupuesto privado','Finanças pessoais e orçamento privado'],
+  ['firefly-iii','Persönliche Finanzverwaltung','Personal finance management','Gestion des finances personnelles','Gestione delle finanze personali','Gestión de finanzas personales','Gestão de finanças pessoais'],
+  ['ghostfolio','Portfolio-Tracker für Vermögenswerte','Portfolio tracker for assets','Suivi de portefeuille pour actifs','Tracker di portafoglio per asset','Seguimiento de cartera de activos','Rastreador de carteira de ativos'],
+  ['ollama','Lokale LLMs wie Llama & DeepSeek hosten','Host local LLMs such as Llama and DeepSeek','Héberger des LLM locaux comme Llama et DeepSeek','Ospita LLM locali come Llama e DeepSeek','Aloja LLM locales como Llama y DeepSeek','Aloja LLMs locais como Llama e DeepSeek'],
+  ['open-webui','Chat-Oberfläche für lokale LLMs','Chat interface for local LLMs','Interface de chat pour LLM locaux','Interfaccia chat per LLM locali','Interfaz de chat para LLM locales','Interface de chat para LLMs locais'],
+  ['anything-llm','KI-Workspace für Chat, Dokumente & Agenten','AI workspace for chat, documents, and agents','Espace IA pour chat, documents et agents','Workspace IA per chat, documenti e agenti','Espacio de IA para chat, documentos y agentes','Workspace de IA para chat, documentos e agentes'],
+  ['stable-diffusion','Bilder mit KI generieren (AUTOMATIC1111)','Generate images with AI (AUTOMATIC1111)','Générer des images avec IA (AUTOMATIC1111)','Genera immagini con IA (AUTOMATIC1111)','Genera imágenes con IA (AUTOMATIC1111)','Gera imagens com IA (AUTOMATIC1111)'],
+  ['comfyui','Node-basierte Stable-Diffusion-Oberfläche','Node-based Stable Diffusion interface','Interface Stable Diffusion basée sur des nœuds','Interfaccia Stable Diffusion basata su nodi','Interfaz de Stable Diffusion basada en nodos','Interface Stable Diffusion baseada em nós'],
+  ['localai','OpenAI-kompatible lokale API','OpenAI-compatible local API','API locale compatible OpenAI','API locale compatibile con OpenAI','API local compatible con OpenAI','API local compatível com OpenAI'],
+  ['perplexica','KI-gestützte Suchmaschine','AI-assisted search engine','Moteur de recherche assisté par IA','Motore di ricerca assistito da IA','Motor de búsqueda asistido por IA','Motor de pesquisa assistido por IA'],
+  ['n8n','Workflow-Automatisierung mit KI-Knoten','Workflow automation with AI nodes','Automatisation de workflows avec nœuds IA','Automazione workflow con nodi IA','Automatización de flujos con nodos de IA','Automação de workflows com nós de IA'],
+  ['grafana','Dashboards & Visualisierung von Metriken','Dashboards and metric visualization','Tableaux de bord et visualisation de métriques','Dashboard e visualizzazione metriche','Paneles y visualización de métricas','Dashboards e visualização de métricas'],
+  ['prometheus','Metrik-Sammlung & Zeitreihen-Datenbank','Metric collection and time-series database','Collecte de métriques et base de séries temporelles','Raccolta metriche e database time-series','Recogida de métricas y base de series temporales','Recolha de métricas e base de dados temporal'],
+  ['uptime-kuma','Überwachung der Verfügbarkeit von Diensten','Service availability monitoring','Surveillance de disponibilité des services','Monitoraggio disponibilità dei servizi','Supervisión de disponibilidad de servicios','Monitorização da disponibilidade de serviços'],
+  ['portainer','Web-Oberfläche zur Docker-Verwaltung','Web interface for Docker management','Interface web pour gérer Docker','Interfaccia web per gestire Docker','Interfaz web para administrar Docker','Interface web para gerir Docker'],
+  ['dozzle','Echtzeit-Logs aller Container im Browser','Real-time logs for all containers in the browser','Logs en temps réel de tous les conteneurs dans le navigateur','Log in tempo reale di tutti i container nel browser','Logs en tiempo real de todos los contenedores en el navegador','Logs em tempo real de todos os contentores no navegador'],
+  ['netdata','Echtzeit-Performance-Monitoring','Real-time performance monitoring','Supervision des performances en temps réel','Monitoraggio prestazioni in tempo reale','Monitorización de rendimiento en tiempo real','Monitorização de desempenho em tempo real'],
+  ['beszel','Leichtgewichtiges Server-Monitoring','Lightweight server monitoring','Supervision légère de serveurs','Monitoraggio server leggero','Monitorización ligera de servidores','Monitorização leve de servidores'],
+  ['scrutiny','Festplatten-Gesundheit (S.M.A.R.T.) überwachen','Monitor disk health (S.M.A.R.T.)','Surveiller la santé des disques (S.M.A.R.T.)','Monitora la salute dei dischi (S.M.A.R.T.)','Supervisa la salud de discos (S.M.A.R.T.)','Monitoriza a saúde dos discos (S.M.A.R.T.)'],
+  ['glances','System-Übersicht im Terminal & Web','System overview in terminal and web','Vue système dans le terminal et le web','Panoramica sistema in terminale e web','Vista del sistema en terminal y web','Visão geral do sistema no terminal e na web'],
+  ['qbittorrent','BitTorrent-Client mit Web-Oberfläche','BitTorrent client with web interface','Client BitTorrent avec interface web','Client BitTorrent con interfaccia web','Cliente BitTorrent con interfaz web','Cliente BitTorrent com interface web'],
+  ['transmission','Leichtgewichtiger BitTorrent-Client','Lightweight BitTorrent client','Client BitTorrent léger','Client BitTorrent leggero','Cliente BitTorrent ligero','Cliente BitTorrent leve'],
+  ['sabnzbd','Usenet-Downloader (NZB)','Usenet downloader (NZB)','Téléchargeur Usenet (NZB)','Downloader Usenet (NZB)','Descargador de Usenet (NZB)','Descarregador Usenet (NZB)'],
+  ['sonarr','Automatische Serien-Verwaltung','Automatic TV show management','Gestion automatique des séries','Gestione automatica delle serie','Gestión automática de series','Gestão automática de séries'],
+  ['radarr','Automatische Film-Verwaltung','Automatic movie management','Gestion automatique des films','Gestione automatica dei film','Gestión automática de películas','Gestão automática de filmes'],
+  ['prowlarr','Indexer-Manager für *arr-Apps','Indexer manager for *arr apps','Gestionnaire d’indexeurs pour apps *arr','Gestore indexer per app *arr','Gestor de indexadores para apps *arr','Gestor de indexadores para apps *arr'],
+  ['bazarr','Untertitel automatisch herunterladen','Automatically download subtitles','Télécharger les sous-titres automatiquement','Scarica sottotitoli automaticamente','Descarga subtítulos automáticamente','Descarrega legendas automaticamente'],
+  ['lidarr','Automatische Musik-Verwaltung','Automatic music management','Gestion automatique de la musique','Gestione automatica della musica','Gestión automática de música','Gestão automática de música'],
+  ['jellyseerr','Anfragen-Verwaltung für Jellyfin/Plex','Request management for Jellyfin and Plex','Gestion des demandes pour Jellyfin et Plex','Gestione richieste per Jellyfin e Plex','Gestión de solicitudes para Jellyfin y Plex','Gestão de pedidos para Jellyfin e Plex'],
+  ['metube','YouTube-Downloader mit Web-UI (yt-dlp)','YouTube downloader with web UI (yt-dlp)','Téléchargeur YouTube avec interface web (yt-dlp)','Downloader YouTube con interfaccia web (yt-dlp)','Descargador de YouTube con interfaz web (yt-dlp)','Descarregador YouTube com interface web (yt-dlp)'],
+  ['pinchflat','YouTube-Medien automatisch archivieren','Automatically archive YouTube media','Archiver automatiquement des médias YouTube','Archivia automaticamente media YouTube','Archiva medios de YouTube automáticamente','Arquiva media do YouTube automaticamente'],
+  ['home-assistant','Heim-Automatisierung mit Fokus auf Privatsphäre','Home automation focused on privacy','Domotique centrée sur la confidentialité','Automazione domestica orientata alla privacy','Automatización del hogar centrada en privacidad','Automação doméstica focada na privacidade'],
+  ['node-red','Visuelle Programmierung für IoT-Flows','Visual programming for IoT flows','Programmation visuelle pour flux IoT','Programmazione visuale per flussi IoT','Programación visual para flujos IoT','Programação visual para fluxos IoT'],
+  ['zigbee2mqtt','Zigbee-Geräte ohne Hersteller-Bridge nutzen','Use Zigbee devices without a vendor bridge','Utiliser des appareils Zigbee sans pont fabricant','Usa dispositivi Zigbee senza bridge del produttore','Usa dispositivos Zigbee sin puente del fabricante','Usa dispositivos Zigbee sem ponte do fabricante'],
+  ['esphome','ESP-Mikrocontroller per YAML konfigurieren','Configure ESP microcontrollers with YAML','Configurer des microcontrôleurs ESP en YAML','Configura microcontroller ESP con YAML','Configura microcontroladores ESP con YAML','Configura microcontroladores ESP com YAML'],
+  ['mosquitto','MQTT-Broker für IoT-Nachrichten','MQTT broker for IoT messages','Broker MQTT pour messages IoT','Broker MQTT per messaggi IoT','Broker MQTT para mensajes IoT','Broker MQTT para mensagens IoT'],
+  ['frigate','NVR mit Echtzeit-Objekterkennung','NVR with real-time object detection','NVR avec détection d’objets en temps réel','NVR con rilevamento oggetti in tempo reale','NVR con detección de objetos en tiempo real','NVR com deteção de objetos em tempo real'],
+  ['scrypted','Smart-Home-Video-Plattform (HomeKit etc.)','Smart home video platform (HomeKit, etc.)','Plateforme vidéo domotique (HomeKit, etc.)','Piattaforma video smart home (HomeKit ecc.)','Plataforma de vídeo smart home (HomeKit, etc.)','Plataforma de vídeo smart home (HomeKit etc.)'],
+  ['homebridge','Nicht-HomeKit-Geräte in Apple Home einbinden','Connect non-HomeKit devices to Apple Home','Intégrer des appareils non HomeKit à Apple Home','Integra dispositivi non HomeKit in Apple Home','Integra dispositivos no HomeKit en Apple Home','Integra dispositivos não HomeKit no Apple Home'],
+  ['gitea','Leichtgewichtiger Git-Server mit Web-UI','Lightweight Git server with web UI','Serveur Git léger avec interface web','Server Git leggero con interfaccia web','Servidor Git ligero con interfaz web','Servidor Git leve com interface web'],
+  ['forgejo','Community-getriebener Git-Server','Community-driven Git server','Serveur Git porté par la communauté','Server Git guidato dalla comunità','Servidor Git impulsado por la comunidad','Servidor Git orientado pela comunidade'],
+  ['gitlab','Komplette DevOps-Plattform','Complete DevOps platform','Plateforme DevOps complète','Piattaforma DevOps completa','Plataforma DevOps completa','Plataforma DevOps completa'],
+  ['code-server','VS Code im Browser','VS Code in the browser','VS Code dans le navigateur','VS Code nel browser','VS Code en el navegador','VS Code no navegador'],
+  ['gitea-runner','Container-native CI/CD-Plattform','Container-native CI/CD platform','Plateforme CI/CD native conteneurs','Piattaforma CI/CD nativa per container','Plataforma CI/CD nativa de contenedores','Plataforma CI/CD nativa de contentores'],
+  ['woodpecker','Einfache CI/CD-Engine','Simple CI/CD engine','Moteur CI/CD simple','Motore CI/CD semplice','Motor CI/CD simple','Motor CI/CD simples'],
+  ['verdaccio','Leichtgewichtige private npm-Registry','Lightweight private npm registry','Registre npm privé léger','Registry npm privata leggera','Registro npm privado ligero','Registo npm privado leve'],
+  ['it-tools','Sammlung praktischer Entwickler-Tools','Collection of practical developer tools','Collection d’outils pratiques pour développeurs','Raccolta di strumenti pratici per sviluppatori','Colección de herramientas prácticas para desarrolladores','Coleção de ferramentas práticas para programadores'],
+  ['excalidraw','Virtuelles Whiteboard für Skizzen','Virtual whiteboard for sketches','Tableau blanc virtuel pour croquis','Lavagna virtuale per schizzi','Pizarra virtual para bocetos','Quadro branco virtual para esboços'],
+  ['uptime-uptrace','Eleganter Docker-Compose-Manager','Elegant Docker Compose manager','Gestionnaire Docker Compose élégant','Elegante gestore Docker Compose','Gestor elegante de Docker Compose','Gestor elegante de Docker Compose'],
+  ['postgres','Leistungsstarke relationale Datenbank','Powerful relational database','Base de données relationnelle puissante','Database relazionale potente','Base de datos relacional potente','Base de dados relacional poderosa'],
+  ['mariadb','Beliebte MySQL-kompatible Datenbank','Popular MySQL-compatible database','Base de données populaire compatible MySQL','Database popolare compatibile con MySQL','Base de datos popular compatible con MySQL','Base de dados popular compatível com MySQL'],
+  ['mysql','Weltweit verbreitete relationale Datenbank','Widely used relational database','Base de données relationnelle très répandue','Database relazionale molto diffuso','Base de datos relacional muy extendida','Base de dados relacional amplamente usada'],
+  ['redis','In-Memory-Datenspeicher & Cache','In-memory data store and cache','Stockage de données en mémoire et cache','Archivio dati in memoria e cache','Almacén de datos en memoria y caché','Armazenamento de dados em memória e cache'],
+  ['mongodb','Dokumentenorientierte NoSQL-Datenbank','Document-oriented NoSQL database','Base NoSQL orientée documents','Database NoSQL orientato ai documenti','Base de datos NoSQL orientada a documentos','Base de dados NoSQL orientada a documentos'],
+  ['influxdb','Zeitreihen-Datenbank für Metriken','Time-series database for metrics','Base de séries temporelles pour métriques','Database time-series per metriche','Base de series temporales para métricas','Base de dados temporal para métricas'],
+  ['pgadmin','Web-Verwaltung für PostgreSQL','Web administration for PostgreSQL','Administration web pour PostgreSQL','Amministrazione web per PostgreSQL','Administración web para PostgreSQL','Administração web para PostgreSQL'],
+  ['phpmyadmin','Web-Verwaltung für MySQL/MariaDB','Web administration for MySQL/MariaDB','Administration web pour MySQL/MariaDB','Amministrazione web per MySQL/MariaDB','Administración web para MySQL/MariaDB','Administração web para MySQL/MariaDB'],
+  ['adminer','Datenbank-Verwaltung in einer Datei','Database management in a single file','Gestion de bases de données en un seul fichier','Gestione database in un solo file','Gestión de bases de datos en un solo archivo','Gestão de bases de dados num único ficheiro'],
+  ['homepage','Modernes, anpassbares Start-Dashboard','Modern, customizable start dashboard','Dashboard d’accueil moderne et personnalisable','Dashboard iniziale moderno e personalizzabile','Panel de inicio moderno y personalizable','Dashboard inicial moderno e personalizável'],
+  ['dashy','Feature-reiches Dashboard für den Homelab','Feature-rich dashboard for the homelab','Dashboard riche en fonctions pour homelab','Dashboard ricca di funzioni per homelab','Panel con muchas funciones para homelab','Dashboard rica em funcionalidades para homelab'],
+  ['vikunja','To-Do-App & Aufgaben-Verwaltung','To-do app and task management','App de tâches et gestion de projets','App to-do e gestione attività','App de tareas y gestión de tareas','App de tarefas e gestão de tarefas'],
+  ['planka','Kanban-Board (Trello-Alternative)','Kanban board (Trello alternative)','Tableau Kanban (alternative à Trello)','Bacheca Kanban (alternativa a Trello)','Tablero Kanban (alternativa a Trello)','Quadro Kanban (alternativa ao Trello)'],
+  ['focalboard','Projekt- & Aufgaben-Management','Project and task management','Gestion de projets et tâches','Gestione progetti e attività','Gestión de proyectos y tareas','Gestão de projetos e tarefas'],
+  ['syncthing','Dezentrale Datei-Synchronisation','Decentralized file synchronization','Synchronisation de fichiers décentralisée','Sincronizzazione file decentralizzata','Sincronización de archivos descentralizada','Sincronização descentralizada de ficheiros'],
+  ['filebrowser','Web-Datei-Manager','Web file manager','Gestionnaire de fichiers web','File manager web','Gestor de archivos web','Gestor de ficheiros web'],
+  ['seafile','Datei-Sync & -Sharing mit hoher Performance','High-performance file sync and sharing','Synchronisation et partage de fichiers performants','Sync e condivisione file ad alte prestazioni','Sincronización y compartición de archivos de alto rendimiento','Sincronização e partilha de ficheiros de alto desempenho'],
+  ['kasm','Streamed Container-Desktops im Browser','Streamed container desktops in the browser','Bureaux conteneurisés diffusés dans le navigateur','Desktop container in streaming nel browser','Escritorios de contenedores en streaming en el navegador','Ambientes de trabalho em contentores no navegador'],
+  ['guacamole','Clientloser Remote-Desktop-Zugriff (RDP/VNC/SSH)','Clientless remote desktop access (RDP/VNC/SSH)','Accès bureau distant sans client (RDP/VNC/SSH)','Accesso desktop remoto senza client (RDP/VNC/SSH)','Acceso remoto sin cliente (RDP/VNC/SSH)','Acesso remoto sem cliente (RDP/VNC/SSH)'],
+  ['wireguard-ui','Privatsphäre-freundliche Google-Suche','Privacy-friendly Google search','Recherche Google respectueuse de la vie privée','Ricerca Google rispettosa della privacy','Búsqueda de Google respetuosa con la privacidad','Pesquisa Google amiga da privacidade'],
+  ['searxng','Datenschutzfreundliche Meta-Suchmaschine','Privacy-friendly meta search engine','Méta-moteur de recherche respectueux de la vie privée','Meta-motore di ricerca rispettoso della privacy','Metabuscador respetuoso con la privacidad','Motor de metapesquisa amigo da privacidade'],
+  ['changedetection','Webseiten auf Änderungen überwachen','Monitor websites for changes','Surveiller les changements de sites web','Monitora modifiche sui siti web','Supervisa cambios en sitios web','Monitoriza alterações em sites'],
+  ['mealie2','Rezept-Manager mit Einkaufslisten','Recipe manager with shopping lists','Gestionnaire de recettes avec listes de courses','Gestore ricette con liste della spesa','Gestor de recetas con listas de compra','Gestor de receitas com listas de compras'],
+  ['mattermost','Team-Chat (Slack-Alternative)','Team chat (Slack alternative)','Chat d’équipe (alternative à Slack)','Chat di team (alternativa a Slack)','Chat de equipo (alternativa a Slack)','Chat de equipa (alternativa ao Slack)'],
+  ['rocketchat','Team-Kommunikationsplattform','Team communication platform','Plateforme de communication d’équipe','Piattaforma di comunicazione per team','Plataforma de comunicación de equipo','Plataforma de comunicação de equipa'],
+  ['minio','S3-kompatibler Objektspeicher','S3-compatible object storage','Stockage objet compatible S3','Object storage compatibile S3','Almacenamiento de objetos compatible con S3','Armazenamento de objetos compatível com S3'],
+  ['duplicati','Verschlüsselte Backups in die Cloud','Encrypted backups to the cloud','Sauvegardes chiffrées vers le cloud','Backup cifrati nel cloud','Copias de seguridad cifradas en la nube','Backups cifrados para a cloud'],
+];
+const APP_DESC_TRANSLATIONS=Object.fromEntries(
+  APP_DESC_ROWS.map(([id,de,en,fr,it,es,pt])=>[id,{de,en,fr,it,es,pt}])
+);
+
+function appLang(){
+  const lang=currentLanguage();
+  return APP_LANGS.includes(lang)?lang:'en';
+}
+function appUi(key){
+  const item=APP_UI[key];
+  return item?(item[appLang()]||item.en||key):key;
+}
+function appCategoryKey(category){
+  return APP_CATEGORY_ALIASES[String(category||'')]||String(category||'').toLowerCase();
+}
+function appCategoryLabel(category){
+  const key=appCategoryKey(category);
+  const labels=APP_CATEGORY_LABELS[key];
+  return labels?(labels[appLang()]||labels.en):String(category||'');
+}
+function appCategoryKeys(categories){
+  const keys=['all'];
+  (categories||[]).forEach(cat=>{
+    const key=appCategoryKey(cat);
+    if(key&&key!=='all'&&!keys.includes(key))keys.push(key);
+  });
+  return keys;
+}
+function localizedAppDesc(app){
+  const item=APP_DESC_TRANSLATIONS[app.id];
+  return item?(item[appLang()]||item.en||app.desc||''):(app.desc||'');
+}
+function appMatchesSearch(app,q){
+  if(!q)return true;
+  return [
+    app.name,
+    app.desc,
+    localizedAppDesc(app),
+    appCategoryLabel(app.category),
+    appCategoryKey(app.category),
+  ].join(' ').toLowerCase().includes(q);
+}
 
 function updateAppsBadge(){
   const el=$('#badge-apps');
@@ -7119,8 +7316,9 @@ async function renderApps(body){
   body.innerHTML='<div class="loading">Loading app catalog…</div>';
   try{
     const data=await api('/apps/catalog');
-    appsCatalog=data.apps;
-    renderAppsView(body,data.categories);
+    appsCatalog=data.apps||[];
+    appsCatalogCategories=data.categories||[];
+    renderAppsView(body,appsCatalogCategories);
   }catch(e){
     body.innerHTML=`<div class="empty-state">Fehler beim Laden: ${esc(e.message)}</div>`;
   }
@@ -7129,30 +7327,32 @@ async function renderApps(body){
 function renderAppsView(body,categories){
   const q=appsSearch.toLowerCase();
   const filtered=appsCatalog.filter(a=>{
-    const catOk=appsActiveCat==='All'||a.category===appsActiveCat;
-    const qOk=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
-    return catOk&&qOk;
+    const catOk=appsActiveCat==='all'||appCategoryKey(a.category)===appsActiveCat;
+    return catOk&&appMatchesSearch(a,q);
   });
   const installedCount=appsCatalog.filter(a=>a.installed).length;
   const updateCount=appsCatalog.filter(a=>a.update_available).length;
+  const categoryKeys=appCategoryKeys(categories||appsCatalogCategories);
 
   body.innerHTML=`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-      <input id="apps-search" class="nx-search" placeholder="Search apps…" value="${esc(appsSearch)}" style="flex:1;min-width:160px;max-width:280px" oninput="appsDoSearch(this.value)">
-      <span style="font-size:11px;color:var(--text3)">${appsCatalog.length} apps · ${installedCount} installed${updateCount?` · <span style="color:#fbbf24">${updateCount} update${updateCount>1?'s':''}</span>`:''}</span>
-      <button class="btn ghost sm" style="margin-left:auto" onclick="appsCheckUpdates()" title="Check for updates">↻ Check updates</button>
+      <input id="apps-search" class="nx-search" placeholder="${esc(appUi('searchApps'))}" value="${esc(appsSearch)}" style="flex:1;min-width:160px;max-width:280px" oninput="appsDoSearch(this.value)">
+      <span style="font-size:11px;color:var(--text3)">${appsCatalog.length} ${esc(appUi('apps'))} · ${installedCount} ${esc(appUi('installed'))}${updateCount?` · <span style="color:#fbbf24">${updateCount} ${esc(appUi(updateCount>1?'updates':'update'))}</span>`:''}</span>
+      <button class="btn ghost sm" style="margin-left:auto" onclick="appsCheckUpdates()" title="${esc(appUi('checkUpdates'))}">↻ ${esc(appUi('checkUpdates'))}</button>
     </div>
     <div class="apps-cats" id="apps-cats">
-      ${categories.map(c=>`<div class="apps-cat${c===appsActiveCat?' active':''}" onclick="appsSetCat('${esc(c)}')">${esc(c)}</div>`).join('')}
+      ${categoryKeys.map(c=>`<div class="apps-cat${c===appsActiveCat?' active':''}" onclick="appsSetCat('${esc(c)}')">${esc(appCategoryLabel(c))}</div>`).join('')}
     </div>
     <div class="apps-grid" id="apps-grid">
-      ${filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">No apps found</div>'}
+      ${filtered.length?filtered.map(appCardHtml).join(''):`<div class="empty-state" style="grid-column:1/-1">${esc(appUi('noAppsFound'))}</div>`}
     </div>`;
+  nxDecorateSearch(body);
+  translateRenderedText(body);
 }
 
 function appTint(cat){
-  return ({Media:'#a78bfa','Network':'#22d3ee','Productivity':'#7a4aff',AI:'#f472b6',
-    Monitoring:'#9ca3af',Download:'#2dd4bf',Home:'#fbbf24',Developer:'#60a5fa','Datenbank':'#fb923c'})[cat]||'#9d7aff';
+  return ({media:'#a78bfa',network:'#22d3ee',productivity:'#7a4aff',ai:'#f472b6',
+    monitoring:'#9ca3af',download:'#2dd4bf',home:'#fbbf24',developer:'#60a5fa',database:'#fb923c'})[appCategoryKey(cat)]||'#9d7aff';
 }
 function appHexA(hex,al){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${al})`;}
 
@@ -7188,20 +7388,20 @@ function appCardHtml(a){
           <div class="app-card-meta">:${a.port||'—'}</div>
         </div>
       </div>
-      <div class="app-card-desc">${esc(a.desc)}</div>
+      <div class="app-card-desc">${esc(localizedAppDesc(a))}</div>
       <div class="app-card-actions">${actions}</div>
     </div>`;
 }
 
-window.appsSetCat=cat=>{appsActiveCat=cat;renderApps($('#modal-body'));};
+window.appsSetCat=cat=>{appsActiveCat=appCategoryKey(cat);renderAppsView($('#modal-body'));};
 window.appsDoSearch=v=>{appsSearch=v;const grid=$('#apps-grid');if(!grid)return;
   const q=v.toLowerCase();
   const filtered=appsCatalog.filter(a=>{
-    const catOk=appsActiveCat==='All'||a.category===appsActiveCat;
-    const qOk=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
-    return catOk&&qOk;
+    const catOk=appsActiveCat==='all'||appCategoryKey(a.category)===appsActiveCat;
+    return catOk&&appMatchesSearch(a,q);
   });
-  grid.innerHTML=filtered.length?filtered.map(appCardHtml).join(''):'<div class="empty-state" style="grid-column:1/-1">No apps found</div>';
+  grid.innerHTML=filtered.length?filtered.map(appCardHtml).join(''):`<div class="empty-state" style="grid-column:1/-1">${esc(appUi('noAppsFound'))}</div>`;
+  translateRenderedText(grid);
 };
 
 window.appInstallForm=async id=>{
@@ -7775,8 +7975,8 @@ window.appInstallForm=async id=>{
     $('#form-body').innerHTML=`
       <div class="nx-card-inner">
         <div class="nx-action-title">${esc(a.name)}</div>
-        <p class="nx-action-sub">${esc(a.desc||'Install this app with the default settings.')}</p>
-        <div class="nx-kv">${cardMetric('Port',a.port||'Automatic')}${cardMetric('Data folder','/opt/runvard/data/apps/'+esc(a.id))}</div>
+        <p class="nx-action-sub">${esc(localizedAppDesc(a)||appUi('installDefault'))}</p>
+        <div class="nx-kv">${cardMetric('Port',a.port||appUi('automatic'))}${cardMetric(appUi('dataFolder'),'/opt/runvard/data/apps/'+esc(a.id))}</div>
       </div>
       ${advancedDetails('Advanced compose file',`<textarea id="app-compose-content" rows="14" style="font-family:'JetBrains Mono',monospace">${esc(a.compose||'')}</textarea><div class="hint">Only edit this if you understand Docker Compose.</div>`,false)}
       <div class="form-actions"><button class="btn ghost" onclick="closeForm()">${esc(tr('cancel'))}</button><button class="btn" id="app-install-go">${esc(uiText('Install'))}</button></div>`;
@@ -7793,7 +7993,7 @@ window.appInstallForm=async id=>{
       if(host)host.insertBefore(indicator,host.firstChild);
       try{
         const r=await post('/apps/install',{app_id:id,content});
-        if(!r.job_id){indicator.remove();toast('Install did not start','error');return;}
+        if(!r.job_id){indicator.remove();toast(appUi('installDidNotStart'),'error');return;}
         _activeInstalls++;updateAppsBadge();
         let progress=8;
         const poller=setInterval(async()=>{
@@ -7808,7 +8008,7 @@ window.appInstallForm=async id=>{
               clearInterval(poller);_activeInstalls=Math.max(0,_activeInstalls-1);updateAppsBadge();
               if(barEl)barEl.style.width='100%';
               if(s.ok){indicator.classList.add('done');if(labelEl)labelEl.textContent=a.name+' ✓';toast(a.name+' installed');dashAutoAdd(a.id,a.name,a.icon,a.port);}
-              else {indicator.classList.add('error');if(labelEl)labelEl.textContent='Install failed';toast(s.step||'Install failed','error');}
+              else {indicator.classList.add('error');if(labelEl)labelEl.textContent=appUi('installFailed');toast(s.step||appUi('installFailed'),'error');}
               setTimeout(()=>indicator.remove(),3000);
               renderApps($('#modal-body'));
             }
@@ -7850,7 +8050,7 @@ function appCardHtml(a){
         <div class="app-card-meta">:${a.port||'—'}</div>
       </div>
     </div>
-    <div class="app-card-desc">${esc(a.desc)}</div>
+    <div class="app-card-desc">${esc(localizedAppDesc(a))}</div>
     <div class="app-card-actions">${actions}</div>
   </div>`;
 }
