@@ -259,8 +259,12 @@ def list_compose_projects():
 
 def _compose_running(path):
     try:
-        r = subprocess.run(["docker", "compose", "ps", "-q"],
+        r = subprocess.run(["docker", "compose", "ps", "--status", "running", "-q"],
                            cwd=path, capture_output=True, text=True, timeout=15)
+        if r.returncode != 0:
+            r = subprocess.run(["docker", "compose", "ps", "-q"],
+                               cwd=path, capture_output=True, text=True,
+                               timeout=15)
         return bool(r.stdout.strip())
     except Exception:
         return False

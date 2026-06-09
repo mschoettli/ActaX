@@ -7546,6 +7546,7 @@ window.appInstallForm=async id=>{
                 dashAutoAdd(a.id,a.name,a.icon,a.port);
               } else {
                 indicator.classList.add('error');
+                indicator.title=s.output||s.step||'';
                 if(lblEl)lblEl.textContent='Error';
                 toast(s.step||'Error','error');
               }
@@ -7572,7 +7573,10 @@ window.appAct=async(id,action)=>{
     const r=await post('/apps/action',{app_id:id,action});
     const msgs={start:'App started',stop:'App pausiert',restart:'App restarted',update:'App updated ✓'};
     if(r.ok)toast(msgs[action]||'OK');
-    else toast('Error','error');
+    else {
+      const detail=(r.output||'').split('\n').map(x=>x.trim()).filter(Boolean).pop();
+      toast(detail||'Error','error');
+    }
     renderApps($('#modal-body'));
   }catch(e){toast('Error: '+e.message,'error');}
 };
@@ -8106,7 +8110,7 @@ window.appInstallForm=async id=>{
               clearInterval(poller);_activeInstalls=Math.max(0,_activeInstalls-1);updateAppsBadge();
               if(barEl)barEl.style.width='100%';
               if(s.ok){indicator.classList.add('done');if(labelEl)labelEl.textContent=a.name+' ✓';toast(a.name+' installed');dashAutoAdd(a.id,a.name,a.icon,a.port);}
-              else {indicator.classList.add('error');if(labelEl)labelEl.textContent=appUi('installFailed');toast(s.step||appUi('installFailed'),'error');}
+              else {indicator.classList.add('error');indicator.title=s.output||s.step||'';if(labelEl)labelEl.textContent=appUi('installFailed');toast(s.step||appUi('installFailed'),'error');}
               setTimeout(()=>indicator.remove(),3000);
               renderApps($('#modal-body'));
             }

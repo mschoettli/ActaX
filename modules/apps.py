@@ -8,14 +8,23 @@ Update-Check:      alle 12h im Hintergrund (Cache in apps_updates.json)
 """
 import os
 import json
+import re
+import socket
 import time
 import subprocess
 import threading
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 APPS_DIR = "/opt/runvard/data/apps"
 UPDATE_CACHE = "/opt/runvard/data/apps_updates.json"
 UPDATE_INTERVAL = 12 * 3600  # 12 Stunden
 ICON_BASE = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg"
+DEFAULT_RUNVARD_PORT = 8080
+PORT_SEARCH_LIMIT = 200
 
 # ──────────────────────────────────────────────────────────────────────────
 #  App-Katalog – 100 bekannteste self-hosted Apps
@@ -473,18 +482,208 @@ CATALOG = [
 
 
 # ──────────────────────────────────────────────────────────────────────────
-#  Compose-Generierung
+#  Compose generation
 # ──────────────────────────────────────────────────────────────────────────
 
+def _runvard_port():
+    try:
+        return int(os.environ.get("RUNVARD_PORT", DEFAULT_RUNVARD_PORT))
+    except (TypeError, ValueError):
+        return DEFAULT_RUNVARD_PORT
+
+
+def _published_port(port_mapping):
+    if isinstance(port_mapping, dict):
+        published = port_mapping.get("published")
+        try:
+            return int(str(published))
+        except (TypeError, ValueError):
+            return None
+
+    spec = str(port_mapping).strip().strip("\"'")
+    base = spec.split("/", 1)[0]
+    parts = base.rsplit(":", 2)
+    if len(parts) == 1:
+        return None
+    host_port = parts[0] if len(parts) == 2 else parts[-2]
+    try:
+        return int(host_port)
+    except ValueError:
+        return None
+
+
+def _replace_published_port(port_mapping, host_port):
+    if isinstance(port_mapping, dict):
+        updated = dict(port_mapping)
+        updated["published"] = host_port
+        return updated
+
+    spec = str(port_mapping).strip().strip("\"'")
+    base, sep, proto = spec.partition("/")
+    parts = base.rsplit(":", 2)
+    if len(parts) == 2:
+        updated = f"{host_port}:{parts[1]}"
+    elif len(parts) == 3:
+        updated = f"{parts[0]}:{host_port}:{parts[2]}"
+    else:
+        return spec
+    return f"{updated}{sep}{proto}" if sep else updated
+
+
+def _port_entries_from_compose(content):
+    if yaml is not None:
+        try:
+            data = yaml.safe_load(content) or {}
+        except Exception:
+            data = {}
+        services = data.get("services") if isinstance(data, dict) else {}
+        if isinstance(services, dict):
+            entries = []
+            for service in services.values():
+                if isinstance(service, dict):
+                    ports = service.get("ports") or []
+                    if isinstance(ports, list):
+                        entries.extend(ports)
+            return entries
+
+    return re.findall(r"^\s*-\s*['\"]?([^'\"\n#]+)['\"]?", content, re.MULTILINE)
+
+
+def _host_ports_from_compose(content):
+    ports = set()
+    for entry in _port_entries_from_compose(content):
+        port = _published_port(entry)
+        if port:
+            ports.add(port)
+    return ports
+
+
+def _first_host_port_from_compose(content, fallback=0):
+    for entry in _port_entries_from_compose(content):
+        port = _published_port(entry)
+        if port:
+            return port
+    return fallback
+
+
+def _port_is_available(port):
+    if port <= 0 or port > 65535:
+        return False
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(("0.0.0.0", port))
+        return True
+    except OSError:
+        return False
+
+
+def _reserved_host_ports(exclude_app_id=""):
+    ports = {_runvard_port()}
+    if not os.path.isdir(APPS_DIR):
+        return ports
+
+    for app_id in os.listdir(APPS_DIR):
+        if app_id == exclude_app_id:
+            continue
+        path = _compose_file(app_id)
+        try:
+            with open(path) as f:
+                ports.update(_host_ports_from_compose(f.read()))
+        except OSError:
+            continue
+    return ports
+
+
+def _next_available_host_port(preferred, reserved):
+    port = preferred
+    for _ in range(PORT_SEARCH_LIMIT):
+        if port not in reserved and _port_is_available(port):
+            return port
+        port += 1
+        if port > 65535:
+            break
+    return preferred
+
+
+def _allocated_port_specs(app):
+    reserved = _reserved_host_ports(exclude_app_id=app["id"])
+    assigned = {}
+    specs = []
+    for spec in app["tpl"]["ports"]:
+        preferred = _published_port(spec)
+        if not preferred:
+            specs.append(spec)
+            continue
+
+        if preferred in assigned:
+            host_port = assigned[preferred]
+        else:
+            host_port = _next_available_host_port(preferred, reserved)
+            assigned[preferred] = host_port
+            reserved.add(host_port)
+        specs.append(_replace_published_port(spec, host_port))
+    return specs
+
+
+def _read_compose(app_id):
+    try:
+        with open(_compose_file(app_id)) as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def _last_output_line(output):
+    for line in reversed(output.splitlines()):
+        line = line.strip()
+        if line:
+            return line[-220:]
+    return ""
+
+
+def _failure_step(label, output):
+    detail = _last_output_line(output)
+    return f"{label}: {detail}" if detail else label
+
+
+def _compose_diagnostics(path):
+    output = ""
+    commands = (
+        ["docker", "compose", "ps", "--all"],
+        ["docker", "compose", "logs", "--no-color", "--tail", "50"],
+    )
+    for cmd in commands:
+        try:
+            result = subprocess.run(cmd, cwd=path, capture_output=True,
+                                    text=True, timeout=30)
+        except Exception:
+            continue
+        output += "\n" + result.stdout + result.stderr
+    return output
+
+
 def build_compose(app):
-    """Erzeugt ein docker-compose.yml aus dem App-Template."""
+    """
+    Build a docker-compose.yml file from an app template.
+
+    Args:
+    -----
+        app (dict):
+            App catalog entry.
+
+    Returns:
+    --------
+        str:
+            Generated Docker Compose content.
+    """
     t = app["tpl"]
     lines = ["services:", f"  {app['id']}:", f"    image: {t['image']}",
              "    restart: unless-stopped",
              f"    container_name: {app['id']}"]
     if t["ports"]:
         lines.append("    ports:")
-        for p in t["ports"]:
+        for p in _allocated_port_specs(app):
             lines.append(f'      - "{p}"')
     if t["volumes"]:
         lines.append("    volumes:")
@@ -516,13 +715,17 @@ def is_installed(app_id):
 
 
 def _running(app_id):
-    """Prüft ob Container der App laufen."""
+    """Return whether at least one app container is running."""
     path = _app_dir(app_id)
     if not os.path.isdir(path):
         return False
     try:
-        r = subprocess.run(["docker", "compose", "ps", "-q"],
+        r = subprocess.run(["docker", "compose", "ps", "--status", "running", "-q"],
                            cwd=path, capture_output=True, text=True, timeout=15)
+        if r.returncode != 0:
+            r = subprocess.run(["docker", "compose", "ps", "-q"],
+                               cwd=path, capture_output=True, text=True,
+                               timeout=15)
         return bool(r.stdout.strip())
     except Exception:
         return False
@@ -537,19 +740,29 @@ def _load_updates():
 
 
 def get_catalog():
-    """Gibt den vollen Katalog mit Live-Status zurück."""
+    """
+    Return the full app catalog with live installation state.
+
+    Returns:
+    --------
+        dict:
+            Catalog categories and app entries.
+    """
     updates = set(_load_updates().get("updates", []))
     out = []
     for app in CATALOG:
         installed = is_installed(app["id"])
         running = _running(app["id"]) if installed else False
+        port = app["port"]
+        if installed:
+            port = _first_host_port_from_compose(_read_compose(app["id"]), port)
         out.append({
             "id": app["id"],
             "name": app["name"],
             "icon": f"{ICON_BASE}/{app['icon']}.svg",
             "category": app["category"],
             "desc": app["desc"],
-            "port": app["port"],
+            "port": port,
             "installed": installed,
             "running": running,
             "update_available": app["id"] in updates,
@@ -558,20 +771,38 @@ def get_catalog():
 
 
 def get_app(app_id):
-    """Einzelne App + generiertes Compose-Template."""
+    """
+    Return one app entry and its Docker Compose content.
+
+    Args:
+    -----
+        app_id (str):
+            Catalog app ID.
+
+    Returns:
+    --------
+        dict:
+            App metadata and Compose content.
+
+    Raises:
+    -------
+        ValueError:
+            Raised when the app is unknown.
+    """
     app = next((a for a in CATALOG if a["id"] == app_id), None)
     if not app:
         raise ValueError("App nicht gefunden")
+    compose = _read_compose(app_id) if is_installed(app_id) else build_compose(app)
     return {
         "id": app["id"],
         "name": app["name"],
         "icon": f"{ICON_BASE}/{app['icon']}.svg",
         "category": app["category"],
         "desc": app["desc"],
-        "port": app["port"],
+        "port": _first_host_port_from_compose(compose, app["port"]),
         "installed": is_installed(app["id"]),
         "running": _running(app["id"]),
-        "compose": build_compose(app),
+        "compose": compose,
     }
 
 
@@ -583,7 +814,26 @@ _install_jobs = {}
 
 
 def install(app_id, content):
-    """Startet die Installation im Hintergrund. Gibt job_id zurück."""
+    """
+    Start an app installation job in the background.
+
+    Args:
+    -----
+        app_id (str):
+            Catalog app ID.
+        content (str):
+            Docker Compose content to install.
+
+    Returns:
+    --------
+        dict:
+            Contains the installation job ID.
+
+    Raises:
+    -------
+        ValueError:
+            Raised when the app is unknown.
+    """
     app = next((a for a in CATALOG if a["id"] == app_id), None)
     if not app:
         raise ValueError("App nicht gefunden")
@@ -599,7 +849,6 @@ def install(app_id, content):
         with open(_compose_file(app_id), "w") as f:
             f.write(content)
         job = _install_jobs[job_id]
-        # Schritt 1: Pull
         job["status"] = "pulling"
         job["step"] = "Image wird heruntergeladen…"
         try:
@@ -609,14 +858,14 @@ def install(app_id, content):
             if r.returncode != 0:
                 job["status"] = "error"
                 job["ok"] = False
-                job["step"] = "Fehler beim Download"
+                job["step"] = _failure_step("Image pull failed", job["output"])
                 return
         except subprocess.TimeoutExpired:
             job["status"] = "error"
             job["ok"] = False
-            job["step"] = "Timeout beim Download"
+            job["step"] = "Image pull timed out"
             return
-        # Schritt 2: Start
+
         job["status"] = "starting"
         job["step"] = "Container wird gestartet…"
         try:
@@ -625,18 +874,42 @@ def install(app_id, content):
             job["output"] += r.stdout + r.stderr
             job["ok"] = r.returncode == 0
             job["status"] = "done" if r.returncode == 0 else "error"
-            job["step"] = "Fertig ✓" if r.returncode == 0 else "Fehler beim Start"
+            if r.returncode != 0:
+                job["step"] = _failure_step("Container start failed",
+                                            job["output"])
+                return
+            time.sleep(1)
+            if not _running(app_id):
+                job["ok"] = False
+                job["status"] = "error"
+                job["output"] += _compose_diagnostics(path)
+                job["step"] = _failure_step("Container exited after start",
+                                            job["output"])
+                return
+            job["step"] = "Fertig ✓"
         except subprocess.TimeoutExpired:
             job["status"] = "error"
             job["ok"] = False
-            job["step"] = "Timeout beim Start"
+            job["step"] = "Container start timed out"
 
     threading.Thread(target=run, daemon=True).start()
     return {"job_id": job_id}
 
 
 def install_status(job_id):
-    """Gibt den aktuellen Status einer Installation zurück."""
+    """
+    Return the current status of an installation job.
+
+    Args:
+    -----
+        job_id (str):
+            Installation job ID.
+
+    Returns:
+    --------
+        dict:
+            Current job status and recent output.
+    """
     job = _install_jobs.get(job_id)
     if not job:
         return {"status": "unknown"}
@@ -646,16 +919,36 @@ def install_status(job_id):
         "ok": job["ok"],
         "app_id": job["app_id"],
         "app_name": job.get("app_name", ""),
+        "output": job.get("output", "")[-2000:],
     }
 
 
 def action(app_id, act):
-    """start | stop | restart | down | update"""
+    """
+    Execute an app lifecycle action.
+
+    Args:
+    -----
+        app_id (str):
+            Catalog app ID.
+        act (str):
+            One of start, stop, restart, down, or update.
+
+    Returns:
+    --------
+        dict:
+            Action result and recent command output.
+
+    Raises:
+    -------
+        ValueError:
+            Raised when the app is not installed or the action is unknown.
+    """
     path = _app_dir(app_id)
     if not os.path.isdir(path):
         raise ValueError("App nicht installiert")
     cmds = {
-        "start":   [["docker", "compose", "start"]],
+        "start":   [["docker", "compose", "up", "-d"]],
         "stop":    [["docker", "compose", "stop"]],          # pausieren
         "restart": [["docker", "compose", "restart"]],
         "down":    [["docker", "compose", "down"]],          # deinstallieren (Volumes bleiben)
@@ -672,6 +965,12 @@ def action(app_id, act):
         if r.returncode != 0:
             ok = False
             break
+    if act in ("start", "restart", "update") and ok:
+        time.sleep(1)
+        if not _running(app_id):
+            ok = False
+            output += "\nContainer is not running after the command."
+            output += _compose_diagnostics(path)
     # Nach Update die Update-Markierung entfernen
     if act == "update" and ok:
         cache = _load_updates()
