@@ -8053,14 +8053,33 @@ function nxDecorateSearch(root){
 }
 (()=>{
   nxDecorateSearch(document);
-  const mb=$('#modal-body');
-  if(mb&&window.MutationObserver){
-    let scheduled=false;
-    new MutationObserver(()=>{
-      if(scheduled)return;scheduled=true;
-      requestAnimationFrame(()=>{scheduled=false;nxDecorateSearch(mb);translateRenderedText(mb);});
-    }).observe(mb,{childList:true,subtree:true});
-  }
+  if(!window.MutationObserver)return;
+  const SKIP='input,textarea,script,style,.xterm,.logbox,.mono';
+  const queue=new Set();
+  let scheduled=false;
+  const flush=()=>{
+    scheduled=false;
+    const nodes=[...queue];queue.clear();
+    nodes.forEach(n=>{
+      if(!n.isConnected)return;
+      if(n.nodeType===1){
+        if(n.closest(SKIP))return;
+        nxDecorateSearch(n);
+        translateRenderedText(n);
+      }else if(n.nodeType===3){
+        if(n.parentElement&&n.parentElement.closest(SKIP))return;
+        const raw=n.nodeValue,trimmed=raw.trim();
+        if(!trimmed)return;
+        const t=phrase(trimmed);
+        if(t!==trimmed)n.nodeValue=raw.replace(trimmed,t);
+      }
+    });
+  };
+  new MutationObserver(records=>{
+    for(const r of records)for(const n of r.addedNodes)queue.add(n);
+    if(scheduled)return;scheduled=true;
+    requestAnimationFrame(flush);
+  }).observe(document.body,{childList:true,subtree:true});
 })();
 
 
