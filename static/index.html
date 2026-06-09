@@ -6855,10 +6855,26 @@ function pollUpdateJob(id,reboot){
 window.runvardUpdateInstall=async()=>{
   const btn=$('#runvard-upd-go');
   const out=$('#runvard-upd-status');
-  if(btn){btn.disabled=true;btn.textContent='Update running';btn.onclick=null;}
+  const baseline=await api('/sysmgr/runvard-update/log').catch(()=>({log:''}));
+  const baselineLog=baseline.log||'';
+  if(btn){
+    btn.disabled=true;
+    btn.textContent='Update running';
+    btn.onclick=null;
+    btn.classList.remove('danger');
+    btn.classList.add('ghost');
+    btn.style.opacity='.65';
+    btn.style.cursor='not-allowed';
+  }
   if(out){
     out.style.display='grid';
-    out.innerHTML=runvardUpdateInfoHtml('running','Update running','runvard is downloading and applying the latest release.');
+    out.innerHTML=runvardUpdateTerminalHtml(
+      'running',
+      'Update running',
+      'Starting update job...',
+      'Waiting for update output...',
+      8
+    );
   }
   try{
     const r=await post('/sysmgr/runvard-update/apply',{});
@@ -6867,45 +6883,127 @@ window.runvardUpdateInstall=async()=>{
     }
     toast('runvard update started');
     if(btn)btn.textContent='Update running';
-    pollRunvardUpdateLog(Date.now()+180000);
+    pollRunvardUpdateLog(Date.now()+180000,baselineLog);
   }catch(e){
     toast('runvard update failed: '+e.message,'error');
-    if(out)out.textContent='Failed to start runvard update: '+e.message;
-    if(btn){btn.disabled=false;btn.textContent='Refresh now';btn.onclick=runvardUpdateInstall;}
+    if(out)out.innerHTML=runvardUpdateTerminalHtml('error','Failed','Failed to start runvard update.',e.message,100);
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='Refresh now';
+      btn.onclick=runvardUpdateInstall;
+      btn.classList.remove('ghost','danger');
+      btn.style.opacity='';
+      btn.style.cursor='';
+    }
   }
 };
 function runvardUpdateInfoHtml(tone,title,detail){
   const cls=tone==='done'?'good':tone==='error'?'bad':'warn';
   return `<div class="nx-action-head" style="margin:0"><div><div class="nx-action-title">runvard update</div><div class="nx-action-sub" style="margin:4px 0 0">${esc(detail)}</div></div>${statusBadge(title,cls)}</div>`;
 }
+function runvardUpdateTerminalHtml(tone,title,detail,log,progress){
+  const cls=tone==='done'?'good':tone==='error'?'bad':'warn';
+  const width=Math.max(8,Math.min(100,progress||8));
+  const barColor=tone==='done'?'#22c55e':tone==='error'?'#ef4444':'#fbbf24';
+  const output=String(log||'').trim()||'Waiting for update output...';
+  return `
+    <div class="nx-action-head" style="margin:0 0 10px">
+      <div>
+        <div class="nx-action-title">runvard update</div>
+        <div class="nx-action-sub" style="margin:4px 0 0">${esc(detail)}</div>
+      </div>
+      ${statusBadge(title,cls)}
+    </div>
+    <div style="height:7px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-bottom:10px">
+      <div style="height:100%;width:${width}%;background:${barColor};transition:width .25s ease"></div>
+    </div>
+    <pre class="logbox" style="margin:0;max-height:220px">${esc(output)}</pre>`;
+}
 function summarizeRunvardUpdateLog(log){
   const lines=(log||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   const important=lines.filter(line=>/runvard update started|Downloading latest|Latest commit|Running installer|runvard update finished|failed|error/i.test(line));
   return important.slice(-6).join('\n');
 }
-function pollRunvardUpdateLog(until){
+function runvardUpdateProgress(log){
+  if(/runvard update finished/i.test(log))return 100;
+  if(/Running installer/i.test(log))return 72;
+  if(/Latest commit/i.test(log))return 48;
+  if(/Downloading latest/i.test(log))return 28;
+  if(/runvard update started/i.test(log))return 14;
+  return 8;
+}
+function pollRunvardUpdateLog(until,baselineLog=''){
   const out=$('#runvard-upd-status');
   const btn=$('#runvard-upd-go');
   const tick=async()=>{
     try{
       const r=await api('/sysmgr/runvard-update/log');
-      if(out&&r.log){
-        const summary=summarizeRunvardUpdateLog(r.log);
-        out.innerHTML=runvardUpdateInfoHtml('running','Update running',summary||'runvard update is still running.');
+      const log=r.log||'';
+      const hasNewLog=!!log&&log!==baselineLog;
+      const hasStarted=hasNewLog&&/runvard update started|Downloading latest|Latest commit|Running installer/i.test(log);
+      if(out){
+        const summary=hasNewLog?summarizeRunvardUpdateLog(log):'Waiting for the new update log...';
+        out.innerHTML=runvardUpdateTerminalHtml(
+          'running',
+          'Update running',
+          hasStarted?'Installing latest runvard release.':'Waiting for update job output.',
+          summary||'runvard update is still running.',
+          hasStarted?runvardUpdateProgress(log):8
+        );
       }
-      if((r.log||'').includes('runvard update finished')){
+      if(hasStarted&&/runvard update finished/i.test(log)){
         toast('runvard update completed');
-        if(out)out.innerHTML=runvardUpdateInfoHtml('done','Done','Update completed. Click Refresh now when you are ready to reload.');
-        if(btn){btn.disabled=false;btn.textContent='Refresh now';btn.onclick=()=>location.reload();}
+        if(out){
+          out.innerHTML=runvardUpdateTerminalHtml(
+            'done',
+            'Ready to reload',
+            'Update finished. Reload now to use the new version.',
+            summarizeRunvardUpdateLog(log)||'runvard update finished.',
+            100
+          );
+        }
+        if(btn){
+          btn.disabled=false;
+          btn.textContent='Refresh now';
+          btn.onclick=()=>location.reload();
+          btn.classList.remove('ghost');
+          btn.classList.add('danger');
+          btn.style.opacity='';
+          btn.style.cursor='';
+        }
         return;
       }
     }catch(e){
-      if(out)out.innerHTML=runvardUpdateInfoHtml('running','Update running','runvard may be restarting. Waiting for the update result.');
+      if(out){
+        out.innerHTML=runvardUpdateTerminalHtml(
+          'running',
+          'Update running',
+          'runvard may be restarting. Waiting for the update result.',
+          'Connection interrupted while the service restarts...',
+          82
+        );
+      }
     }
     if(Date.now()<until)setTimeout(tick,2500);
     else{
-      if(out)out.innerHTML=runvardUpdateInfoHtml('done','Check manually','The update request finished polling. Reload when you want to check the new version.');
-      if(btn){btn.disabled=false;btn.textContent='Refresh now';btn.onclick=()=>location.reload();}
+      if(out){
+        out.innerHTML=runvardUpdateTerminalHtml(
+          'done',
+          'Check manually',
+          'Polling ended. Reload when you want to check the new version.',
+          'Update may still be finishing in the background.',
+          100
+        );
+      }
+      if(btn){
+        btn.disabled=false;
+        btn.textContent='Refresh now';
+        btn.onclick=()=>location.reload();
+        btn.classList.remove('ghost');
+        btn.classList.add('danger');
+        btn.style.opacity='';
+        btn.style.cursor='';
+      }
     }
   };
   tick();
