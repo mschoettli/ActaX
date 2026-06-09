@@ -8281,11 +8281,8 @@ const renderSystemOriginalFallback=async(body,tab)=>{
             ${cardMetric('Branch',esc(runvard.branch||'main'))}
             ${cardMetric('Latest commit date',esc(remote.date||'Unknown'))}
           </div>
-          <p class="nx-action-sub">${remote.message?esc(remote.message):'runvard checks the latest main branch commit on GitHub.'}</p>
           <div class="nx-action-row">
             ${runvard.update_available?`<button class="btn sm" id="runvard-upd-go" onclick="runvardUpdateInstall()">Refresh now</button>`:''}
-            ${remote.url?`<button class="btn ghost sm" onclick="window.open('${esc(remote.url)}','_blank')">Open commit</button>`:''}
-            <button class="btn ghost sm" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/mschoettli/runvard/main/install.sh | sudo bash')">Copy update command</button>
           </div>
           <div class="nx-card-inner" id="runvard-upd-status" style="display:none;margin-top:12px"></div>
         </div>
